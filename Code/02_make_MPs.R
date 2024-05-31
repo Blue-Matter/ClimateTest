@@ -24,7 +24,7 @@ SzMat = matlenlim2
 
 
 # --- MP2 Index target setting TAC ---------------------------------------------
-IMP_core = function (x, Data, reps = 1, plot = FALSE, delta=15, sigma_obs = 0.025, enp.mult = 0.15,
+IMP_core = function (x, Data, reps = 1, plot = FALSE, delta=15, enp.mult = 0.15,
                      type = "Ftarget",lever="TAE"){
  
   smooth<-function(xx,plot=F,enp.mult=0.15,plotname=""){
@@ -50,8 +50,7 @@ IMP_core = function (x, Data, reps = 1, plot = FALSE, delta=15, sigma_obs = 0.02
   UMSYrat = MSY/(SSBMSY+MSY)
   SSB_P = sum(Data@Misc$StockPars$SSB_P[x,,y,])
   Fref = Data@Misc$FleetPars$Find[,nyears]
-  
-  
+ 
   Index = Data@Ind[x,]
   ind = nyears - 19:0
   qs = mean(SSB[ind]) / mean(Index[ind])
@@ -60,7 +59,7 @@ IMP_core = function (x, Data, reps = 1, plot = FALSE, delta=15, sigma_obs = 0.02
   SSBtss = smooth(SSBts,plot=F,enp.mult = enp.mult)
   SSBest = SSBtss[length(SSBtss)]
   last_TAC = Data@MPrec[x]
-    Rec = new('Rec')
+  Rec = new('Rec')
   
   if(lever =="TAC"){
    
