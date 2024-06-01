@@ -13,7 +13,7 @@ source("Code/03_make_tests.R")
 
 # --- Define runs --------------------------------------------------------------
 
-Snames = c("BET","SWO","BSH","SMA","WHM","BUM")
+Snames = c("BET","SWO","BSH") #Snames = c("BET","SWO","BSH","SMA","WHM","BUM")
 OM_files = paste0("OMs/OM_",Snames,".rds")
 ns = length(Snames)
 avail("ClimateTest")
@@ -24,9 +24,39 @@ bys =     c(0,       10,    20,    -10,    -20,    -20,     -40,     -10,   -20)
 nt = length(test_type)
 
 MPs = c("ITC","IRC","ITE","IRE","SpC","SzMat","SP_MSY","SP_4010")
+# MPs = c("ITC","IRC","ITE","IRE","SpC","SzMat","FMSYref","FMSYref75")
 
 # --- Run simulations ----------------------------------------------------------
 
+runs = expand.grid(1:ns,1:nt)
+nams = paste0(Snames[runs[,1]],"_",test_name[runs[,2]],".rds")
+runs = runs[!(nams %in% list.files("MSEs_wAssess")),]
+
+
+dorun = function(x,runs,OM_files,Snames,test_name,MPs,bys){
+  ss = runs[x,1]
+  tt = runs[x,2]
+  OM = readRDS(OM_files[[ss]])
+  cat(paste0("Running ", Snames[ss],"_",test_name[tt],"\n"))
+  OM_mod = do.call(test_type[tt],args=list(OM=OM,by = bys[tt]))
+  MSE = runMSE(OM_mod,MPs,silent=T)
+  #MSE@Name = paste0(Snames[ss],"_",test_name[tt])
+  saveRDS(MSE,file = paste0("MSEs_wAssess/",Snames[ss],"_",test_name[tt],".rds"))
+}
+
+# --- In parallel --------------------------------------------------------------
+
+sfInit(parallel=T,cpus=8)
+sfExport('runs')
+sfLibrary(openMSE)
+sfExportAll()
+sfSapply(1:nrow(runs),dorun,runs=runs,OM_files=OM_files,Snames=Snames,test_name=test_name,MPs=MPs,bys=bys)
+
+
+
+# --- Non parallel ------------------------------------------------------------- 
+
+for(x in 1:nrow(runs))dorun(x, runs=runs,OM_files=OM_files,Snames=Snames,test_name=test_name,MPs=MPs,bys=bys)
 
 for(ss in 1:ns){
   OM = readRDS(OM_files[[ss]])
@@ -41,5 +71,5 @@ for(ss in 1:ns){
 }
 
 
-
+# === End of Script ============================================================
 
