@@ -20,7 +20,7 @@ avail("ClimateTest")
 
 test_name = c("Ref",paste0(rep(c("M","CF","Rec","K"),each=2),"_",rep(c("Mod","Ext"),4)))
 test_type = c("No_ch","M_ch","M_ch","CF_ch","CF_ch","Rec_ch","Rec_ch","K_ch","K_ch")
-bys =     c(0,       10,    20,    -10,    -20,    -20,     -40,     -10,   -20)
+bys =        c(0,       25,    50,    -10,    -20,    -25,     -50,     -10,   -20)
 nt = length(test_type)
 
 MPs = c("ITC","IRC","ITE","IRE","SpC","SzMat","SP_MSY","SP_4010")
@@ -30,7 +30,7 @@ MPs = c("ITC","IRC","ITE","IRE","SpC","SzMat","SP_MSY","SP_4010")
 
 runs = expand.grid(1:ns,1:nt)
 nams = paste0(Snames[runs[,1]],"_",test_name[runs[,2]],".rds")
-runs = runs[!(nams %in% list.files("MSEs_wAssess")),]
+runs = runs[!(nams %in% list.files("MSEs")),]
 
 
 dorun = function(x,runs,OM_files,Snames,test_name,MPs,bys){
@@ -40,8 +40,8 @@ dorun = function(x,runs,OM_files,Snames,test_name,MPs,bys){
   cat(paste0("Running ", Snames[ss],"_",test_name[tt],"\n"))
   OM_mod = do.call(test_type[tt],args=list(OM=OM,by = bys[tt]))
   MSE = runMSE(OM_mod,MPs,silent=T)
-  #MSE@Name = paste0(Snames[ss],"_",test_name[tt])
-  saveRDS(MSE,file = paste0("MSEs_wAssess/",Snames[ss],"_",test_name[tt],".rds"))
+  MSE@Name = paste0(Snames[ss],"_",test_name[tt])
+  saveRDS(MSE,file = paste0("MSEs/",Snames[ss],"_",test_name[tt],".rds"))
 }
 
 # --- In parallel --------------------------------------------------------------
@@ -51,6 +51,8 @@ sfExport('runs')
 sfLibrary(openMSE)
 sfExportAll()
 sfSapply(1:nrow(runs),dorun,runs=runs,OM_files=OM_files,Snames=Snames,test_name=test_name,MPs=MPs,bys=bys)
+
+
 
 
 

@@ -6,7 +6,7 @@
 
 library(openMSE)
 CTdir = "C:/GitHub/ClimateTest"
-nsim <- 24
+nsim <- 64
 
 add_qs_cv_inc = function(OM,qcv = c(0.1,0.15),qinc=c(-0.005,0.005)){
   OM@qcv = qcv

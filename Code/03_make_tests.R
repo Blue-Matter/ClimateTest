@@ -28,8 +28,7 @@ ChangePro_3D = function(OM, slot="M_ageArray",by = 10,by_yr = 30){
   na = dims[2]
   ny = dims[3]
   yind = ny - ((OM@proyears-1):0)
-  frac = 1 + by/100
-  perc = frac^(1/by_yr)-1
+  perc = getperc(by,by_yr)
   mult = (1+perc)^(1:OM@proyears)
   multarr = array(rep(mult,each=nsim*na),c(nsim,na,OM@proyears))
   OM@cpars[[slot]][,,yind] = mat[,,yind]*multarr
@@ -58,22 +57,23 @@ M_ch = function(OM, by = 10, by_yr = 30)   ChangePro_3D(OM, slot = "M_ageArray",
 CF_ch = function(OM, by = -10, by_yr = 30)  ChangePro_3D(OM, slot = "Wt_age",by=by, by_yr = by_yr)
 Rec_ch = function(OM, by = -25, by_yr = 30) ChangePro_2D(OM, slot = "Perr_y",by=by, by_yr = by_yr)
 
-K_ch = function(OM, by = -20, by_yr = 30){
+K_ch = function(OM, by = -20, by_yr = 30, Kstep = 1){
   na = OM@maxage
   proyears = OM@proyears
   nyears = OM@nyears
   nsim = OM@nsim
-  vbK = array(OM@cpars$K,c(nsim,na+1,proyears))
+  vbK = array(OM@cpars$K*Kstep,c(nsim,na+1,proyears))
   Linf = array(OM@cpars$Linf,c(nsim,na+1,proyears))
   t0 = OM@t0[1]
-  #if(t0 > 0)t0=-t0
   perc = getperc(by,by_yr)
   mult = (1+perc)^(1:OM@proyears)
   multarr = array(rep(mult,each=nsim*(na+1)),c(nsim,na+1,proyears))
-  newK = vbK*multarr
-  agearr = aperm(array((0:na)+0.5,c(na+1,nsim,proyears)),c(2,1,3))
+  newK = vbK  *multarr
+  agearr = aperm(array((0:na),c(na+1,nsim,proyears)),c(2,1,3))
   La = Linf * (1-exp(-newK *(agearr-t0)))
   OM@cpars$Len_age[,,nyears+1:proyears] = La
+  OM@cpars$Len_age[OM@cpars$Len_age<=0] = 1E-3
+  OM@cpars$Wt_age = OM@a[1]*OM@cpars$Len_age^OM@b[1]
   OM
 }
 
