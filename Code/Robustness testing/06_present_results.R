@@ -102,11 +102,18 @@ TOdat_Ext = TOdat[grepl("Ext",TOdat$Test),]
 
 
 ggplot(TOdat_Ext, aes(x=EB,y=EC,group=MP)) + 
-  geom_line(aes(color=MP),arrow=arrow()) +
+  geom_path(aes(color=MP),arrow = arrow(length=unit(0.15,"cm"), ends="last", type = "closed"))+
   facet_wrap(~Test+Stock,ncol=3)
- 
-  
 
+ggsave("Figures/TO_Ext.jpg",height=9,width=8,dpi=400,units='in')
+
+
+
+ggplot(TOdat_Mod, aes(x=EB,y=EC,group=MP)) + 
+  geom_path(aes(color=MP),arrow = arrow(length=unit(0.15,"cm"), ends="last", type = "closed"))+
+  facet_wrap(~Test+Stock,ncol=3)
+
+ggsave("Figures/TO_Mod_ppt.jpg",height=5.5,width=7.5,dpi=400,units='in')
 
 
 # === End of script ============================================================
