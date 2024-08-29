@@ -7,12 +7,14 @@
 
 library(openMSE)
 setwd('C:/GitHub/ClimateTest')
+setwd('C:/Users/tcarruth/Documents/GitHub/ClimateTest')
 
 
 # --- Source code for OM modifications and performance metrics -------------------
 
 source('Code/Performance/source/OM_mod.r')
 source('Code/Performance/source/PMs.r')
+source("Code/Performance/Source/MP_internal.r")
 
 
 # --- Load MPs -------------------------------------------------------------------
@@ -28,8 +30,24 @@ OM = readRDS('OMs/Performance/BSH.rds')
 
 # --- set up cluster and calculate MSE results for various climate scenarios -----
 
+nval = 9
+horizon = 20
+maxpercs = c(M = 27)
 
-setup(cpus=7)
+ntypes = length(maxpercs)
+
+for(tt in 1:ntypes){
+  type = names(maxpercs)[tt]
+  MSEobjname = paste0("MSEs_",type)
+  percs = seq(0,maxpercs[tt],length.out = nval)
+  assign(MSEobjname, CT_perf(list(OM), MPs, type, percs, horizo
+  saveRDS(get(MSEobjname),paste0("MSEs/Performance/",MSEobjname,".rds"))
+  cat(paste0("Completed ", type," (",tt,"/",ntypes,")"))
+}
+
+
+setup(cpus = nval)
+
 sfExport('doRec') # export any functions used by MPs
 sfExport(list = MPs)
 
@@ -37,9 +55,11 @@ sfExport(list = MPs)
 # !!! send vector of percentages to the CT_perf function instead !!!
 # !!! edit PGK to be non dynamic !!!
 
-MSEs_M = CT_perf(list(OM), MPs, type = "M", maxperc = 18, horizon=20, nval = 7, parallel = T)
-class(MSEs_M[[1]])
-sapply(MSEs_M,function(X)PGK(X)@Mean)
+
+MSEs_M = 
+
+sapply(MSEs_M,function(X)PGK_dyn(X)@Mean)
+sapply(MSEs_M,function(X)PGK_stat(X)@Mean)
 
 
 

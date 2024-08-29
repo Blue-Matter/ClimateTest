@@ -24,7 +24,7 @@ doM = function(X,incmat,val_list){
   OMv = val_list[[X]]
   multarray = make_mult_array(OMv,inc)
   yind=OMv@nyears+(1:OMv@proyears)
-  OMv@cpars$M_ageArray[,,yind] = OMv@cpars$M_ageArray[,,yind] * aperm(array(multarray,c(nsim,OM@proyears,OM@maxage+1)),c(1,3,2))
+  OMv@cpars$M_ageArray[,,yind] = OMv@cpars$M_ageArray[,,yind] * aperm(array(multarray,c(OM@nsim,OM@proyears,OM@maxage+1)),c(1,3,2))
   #matplot(t(OMv@cpars$M_ageArray[1:3,1,]),type="l")
   OMv
 }
@@ -72,20 +72,21 @@ OM_mod = function(OM_list, type, percs, horizon){
 
 # OM_list = list(OM); MPs = paste0(rep(c("It","Ir","Is"),each=2),rep(c("_5","_10"),3),"t"); type ="M"; maxperc=18; horizon = 20; nval = 7; parallel = T
 
-CT_perf = function(OM_list, MPs, type = "M", maxperc = 18, horizon=20, nval = 7, parallel = T){
+CT_perf = function(OM_list, MPs, type = "M", percs, horizon=20, parallel = T){
  
- percs = seq(0, 18, length.out=7)
- OMs = OM_mod(OM_list, type, percs, horizon)
- nOM = length(OMs)
+ nOM = length(OM_list)  # number of operating models
+ nval = length(percs)   # number of percentage changes to test
+ OMs = OM_mod(OM_list, type, percs, horizon) # a nested list of OMs: OMs[[nOM]][[nval]]
+ 
  MSEs = list()
  
- # for each OM run the nval scenarios
+ # for each OM, run the nval scenarios
  for(i in 1:nOM){
    if(!parallel)MSEs[[i]] = lapply(OMs[[i]],runMSE(X,MPs),MPs=MPs)  # OMs for each value within OM_list object
    if(parallel)MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs)runMSE(X,MPs),MPs=MPs)
  }
 
- # join the MSEs into one per nval scenario  
+ # join (across nOM) the MSEs into one per nval scenario  
  if(nOM == 1) MSEjoin = MSEs[[1]]
  if(nOM > 1){
    MSEjoin = list()
@@ -96,7 +97,7 @@ CT_perf = function(OM_list, MPs, type = "M", maxperc = 18, horizon=20, nval = 7,
    }
  }
  
- MSEjoin
+ MSEjoin # a list of MSEs nval long MSEjoin[[nval]]
   
 }
 

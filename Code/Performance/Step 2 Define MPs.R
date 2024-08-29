@@ -7,6 +7,7 @@
 library(openMSE)
 setwd('C:/GitHub/ClimateTest')
 source("Code/Performance/Source/MP_tuning.r")
+source("Code/Performance/Source/MP_internal.r")
 
 
 # -=- MP archetypes and derivatives ------------------------------------------------------------------------------
@@ -17,15 +18,6 @@ Hist_tune_2 = readRDS('OMs/Performance/Hist_tune_2.rds')
 Hist_tune_3 = readRDS('OMs/Performance/Hist_tune_3.rds')
 
 Data = Hist_tune_1@Data; x = 1                                   # Data for designing MPs
-
-# calculates a TAC from a TAC modifier, maximum TAC changes and maxTAC
-doRec = function(MPrec, mod, maxchng, maxTAC){ 
-  if(mod > (1+maxchng))mod = 1+maxchng
-  if(mod < (1-maxchng))mod = 1-maxchng
-  Rec = new('Rec')
-  Rec@TAC = min(MPrec*mod, maxTAC)
-  Rec
-}
 
 # Index target MP
 It_5 = function(x, Data, reps = 1, targ = 2, nyrs = 3, maxchng = 0.05, maxTAC = 4E5, Ind = 9){
