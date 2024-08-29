@@ -2,7 +2,7 @@
 # ========== Climate Test Performance Metrics ===================================================================================
 # ===============================================================================================================================
 
-# Calculate robustness metrics
+# 3 Run simulations 
 
 
 library(openMSE)
@@ -30,37 +30,35 @@ OM = readRDS('OMs/Performance/BSH.rds')
 
 # --- set up cluster and calculate MSE results for various climate scenarios -----
 
-nval = 9
-horizon = 20
-maxpercs = c(M = 27)
-
-ntypes = length(maxpercs)
-
-for(tt in 1:ntypes){
-  type = names(maxpercs)[tt]
-  MSEobjname = paste0("MSEs_",type)
-  percs = seq(0,maxpercs[tt],length.out = nval)
-  assign(MSEobjname, CT_perf(list(OM), MPs, type, percs, horizo
-  saveRDS(get(MSEobjname),paste0("MSEs/Performance/",MSEobjname,".rds"))
-  cat(paste0("Completed ", type," (",tt,"/",ntypes,")"))
-}
-
-
 setup(cpus = nval)
-
 sfExport('doRec') # export any functions used by MPs
 sfExport(list = MPs)
 
-# natural mortality rate
-# !!! send vector of percentages to the CT_perf function instead !!!
-# !!! edit PGK to be non dynamic !!!
+nval = 9
+horizon = 20
+maxpercs = c(M = 27, R = 56, K = 27)
+ntypes = length(maxpercs)
 
+for(tt in 1:ntypes){
+  
+  type = names(maxpercs)[tt]
+  MSEobjname = paste0("MSEs_",type)
+  percs = seq(0,maxpercs[tt],length.out = nval)
+  assign(MSEobjname, CT_perf(list(OM), MPs, type, percs, horizon))
+  # saveRDS(get(MSEobjname),paste0("MSEs/Performance/",MSEobjname,".rds")) # too large
+  
+  Bmetric = sapply(get(MSEobjname),function(X)PGK_stat(X)@Mean)
+  Ymetric = sapply(get(MSEobjname),function(X)Yrel(X)@Mean)
+  rownames(Bmetric) = rownames(Ymetric) = MPs
+  colnames(Bmetric) = colnames(Ymetric) = percs
+  saveRDS(Bmetric,paste0("Results/Performance/",type,"_PGKstat.rds")) 
+  MSsaveRDS(Ymetric,paste0("Results/Performance/",type,"_Yrel.rds")) 
+  
+  cat(paste0("Completed ", type," (",tt,"/",ntypes,")"))
+  
+}
 
-MSEs_M = 
-
-sapply(MSEs_M,function(X)PGK_dyn(X)@Mean)
-sapply(MSEs_M,function(X)PGK_stat(X)@Mean)
-
+sfStop()
 
 
 

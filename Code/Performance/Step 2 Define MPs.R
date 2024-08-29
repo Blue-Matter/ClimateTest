@@ -5,7 +5,8 @@
 # Define MPs and tune
 
 library(openMSE)
-setwd('C:/GitHub/ClimateTest')
+setwd('C:/GitHub/ClimateTest') # setwd('C:/Users/tcarruth/Documents/GitHub/ClimateTest')
+
 source("Code/Performance/Source/MP_tuning.r")
 source("Code/Performance/Source/MP_internal.r")
 
@@ -13,11 +14,11 @@ source("Code/Performance/Source/MP_internal.r")
 # -=- MP archetypes and derivatives ------------------------------------------------------------------------------
 Hist = readRDS('OMs/Performance/Hist.rds')
 
-Hist_tune_1 = readRDS('OMs/Performance/Hist_tune_1.rds')
-Hist_tune_2 = readRDS('OMs/Performance/Hist_tune_2.rds')
-Hist_tune_3 = readRDS('OMs/Performance/Hist_tune_3.rds')
+#Hist_tune_1 = readRDS('OMs/Performance/Hist_tune_1.rds')
+#Hist_tune_2 = readRDS('OMs/Performance/Hist_tune_2.rds')
+#Hist_tune_3 = readRDS('OMs/Performance/Hist_tune_3.rds')
 
-Data = Hist_tune_1@Data; x = 1                                   # Data for designing MPs
+Data = Hist@Data; x = 1                                   # Data for designing MPs
 
 # Index target MP
 It_5 = function(x, Data, reps = 1, targ = 2, nyrs = 3, maxchng = 0.05, maxTAC = 4E5, Ind = 9){
@@ -66,20 +67,20 @@ paral = F
 #sfExport('doRec') # export any functions used by MPs
 
 # A function that calculates the squared difference between obtained and target mean catch  
-# minfunc = function(MSE_list){ 
-#  Catm = sapply(MSE_list,function(X){mean(X@Catch)})
-#  Catw =  mean(Catm) 
-#  cat(paste0("Cat = ",round(Catw,2),"\n"))
-#  (Catw - 22000)^2 # (22kt)
-#}
+minfunc = function(MSE_list){ 
+  Catm = sapply(MSE_list,function(X){mean(X@Catch)})
+  Catw =  mean(Catm) 
+  cat(paste0("Cat = ",round(Catw,2),"\n"))
+  (Catw - 22000)^2 # (22kt)
+}
 
 # A function that calculates the squared difference between obtained and target PGK  
-minfunc = function(MSE_list){ 
-  PGKm = sapply(MSE_list,function(X){mean(X@SB_SBMSY>1 & X@F_FMSY < 1)})
-  PGKw =  mean(PGKm) # ! this should really be mean() but this way it matches default slick table
-  cat(paste0("PGKw = ",round(PGKw,6),"\n"))
-  (PGKw - 0.6)^2 # PGK = 0.6
-}
+#minfunc = function(MSE_list){ 
+#  PGKm = sapply(MSE_list,function(X){mean(X@SB_SBMSY>1 & X@F_FMSY < 1)})
+#  PGKw =  mean(PGKm) # ! this should really be mean() but this way it matches default slick table
+#  cat(paste0("PGKw = ",round(PGKw,6),"\n"))
+#  (PGKw - 0.6)^2 # PGK = 0.6
+#}
 
 # Index target MP tuning
 
