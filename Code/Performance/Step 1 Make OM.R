@@ -21,13 +21,13 @@ Hist = runMSE(OM, Hist=T)                                    # run a historical 
 saveRDS(OM,"OMs/Performance/BSH.rds")
 saveRDS(Hist,"OMs/Performance/Hist.rds")
 
-OM_tune_1 = SubCpars(OM,1:6)                                 # tuning OM is just 18 simulations
+OM_tune_1 = SubCpars(OM,1:12)                                 # tuning OM is just 18 simulations
 Hist_tune_1 = runMSE(OM_tune_1, Hist=T)                          # save hist object
 
-OM_tune_2 = SubCpars(OM,7:12)                                 # tuning OM is just 18 simulations
+OM_tune_2 = SubCpars(OM,13:24)                                 # tuning OM is just 18 simulations
 Hist_tune_2 = runMSE(OM_tune_2, Hist=T)                          # save hist object
 
-OM_tune_3 = SubCpars(OM,13:18)                                 # tuning OM is just 18 simulations
+OM_tune_3 = SubCpars(OM,25:36)                                 # tuning OM is just 18 simulations
 Hist_tune_3 = runMSE(OM_tune_3, Hist=T)                          # save hist object
 
 saveRDS(OM_tune_1,"OMs/Performance/BSH_tune_1.rds")
