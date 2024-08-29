@@ -35,6 +35,8 @@ sfExport(list = MPs)
 
 # natural mortality rate
 # !!! send vector of percentages to the CT_perf function instead !!!
+# !!! edit PGK to be non dynamic !!!
+
 MSEs_M = CT_perf(list(OM), MPs, type = "M", maxperc = 18, horizon=20, nval = 7, parallel = T)
 class(MSEs_M[[1]])
 sapply(MSEs_M,function(X)PGK(X)@Mean)
