@@ -38,14 +38,14 @@ PGK_stat <- function (MSEobj = NULL, Ref = 1, Yrs = c(1,50))  {
 }
 class(PGK_stat) <- 'PM'
 
-Yrel = function (MSEobj = NULL, Ref = 1, Yrs = c(1,50))  {
+Yrel = function (MSEobj = NULL, Ref = 1, Yrs = c(19,21))  {
   Yrs <- ChkYrs(Yrs, MSEobj)
   PMobj <- new("PMobj")
-  PMobj@Name <- "Yrel: Yield relative to yield in year 0 over Years 1-50"
-  PMobj@Caption <- "Yield relative to year 0"
+  PMobj@Name <- "Yrel: Yield relative to reference yield in year 0 over Years 19-21"
+  PMobj@Caption <- "Yield relative to reference yield"
   
   PMobj@Ref <- Ref
-  yrel = MSEobj@Catch / array(MSEobj@CB_hist[,MSEobj@nyears],dim(MSEobj@Catch))
+  yrel = MSEobj@Catch[,,Yrs[1]:Yrs[2]] / MSEobj@OM$RefY
  
   tt <- yrel
   PMobj@Stat <- tt

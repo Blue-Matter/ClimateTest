@@ -25,16 +25,16 @@ for(MP in seq_along(MPs))assign(MPs[MP],readRDS(paste0("MPs/Performance/",MPs[MP
 
 # --- Load OMs -------------------------------------------------------------------
 
-OM = readRDS('OMs/Performance/BSH.rds')
+OM = readRDS('OMs/Performance/BET.rds')
 
 
 # --- set up cluster and calculate MSE results for various climate scenarios -----
-
+nval = 9
 setup(cpus = nval)
 sfExport('doRec') # export any functions used by MPs
 sfExport(list = MPs)
 
-nval = 9
+
 horizon = 20
 maxpercs = c(M = 27, R = 56, K = 27)
 ntypes = length(maxpercs)
@@ -52,7 +52,7 @@ for(tt in 1:ntypes){
   rownames(Bmetric) = rownames(Ymetric) = MPs
   colnames(Bmetric) = colnames(Ymetric) = percs
   saveRDS(Bmetric,paste0("Results/Performance/",type,"_PGKstat.rds")) 
-  MSsaveRDS(Ymetric,paste0("Results/Performance/",type,"_Yrel.rds")) 
+  saveRDS(Ymetric,paste0("Results/Performance/",type,"_Yrel.rds")) 
   
   cat(paste0("Completed ", type," (",tt,"/",ntypes,")"))
   
