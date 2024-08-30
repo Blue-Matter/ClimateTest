@@ -38,16 +38,46 @@ doR = function(X,incmat,val_list){
   OMv
 }
 
+
+
 doK = function(X, incmat,val_list){ # only deterministic currently
   inc = incmat[,X]
   OMv = val_list[[X]]
-  multarray = make_mult_array(OMv,inc,increasing=F)
-  Karr = aperm(array(OM@K[1]*multarray,c(OMv@nsim,OMv@proyears,OM@maxage+1)),c(1,3,2))
-  agearray = aperm(array((0:OM@maxage)-0.5,c(OM@maxage+1,OMv@nsim, OMv@proyears)),c(2,1,3))
-  pro_len_age = OM@Linf[1]*(1-exp(-Karr*(agearray-OM@t0[1])))
+  if(inc[1]!=1){ # temporary fix
+    old = OMv@cpars$Wt_age
+    old_C = OMv@cpars$Wt_age_C
+    multarray = make_mult_array(OMv,inc,increasing=F)
+    Karr = aperm(array(OMv@K[1]*multarray,c(OMv@nsim,OMv@proyears,OMv@maxage+1)),c(1,3,2))
+    agearray = aperm(array((0:OMv@maxage)+1,c(OMv@maxage+1,OMv@nsim, OMv@proyears)),c(2,1,3))
+    pro_len_age = OMv@Linf[1]*(1-exp(-Karr*(agearray-OM@t0[1])))
+    yind = OMv@nyears+(1:OMv@proyears)
+    OMv@cpars$Len_age[,,yind] = pro_len_age
+    OMv@cpars$Wt_age =  OMv@a * OMv@cpars$Len_age ^ OMv@b
+    rat = OMv@cpars$Wt_age / old
+    OMv@cpars$Wt_age_C = OMv@cpars$Wt_age_C * rat
+  }
+  OMv
+}
+
+doS = function(X, incmat,val_list){ # only deterministic currently
+  inc = incmat[,X]
+  OMv = val_list[[X]]
+  Ierr = runMSE(OMv,Hist=T,parallel=T)@SampPars$Obs$Ierr_y
+  multarray = make_mult_array(OMv,inc,increasing=T)
   yind=OMv@nyears+(1:OMv@proyears)
-  OMv@cpars$Len_age[,,yind] = pro_len_age
-  OMv@cpars$Wt_age =  OMv@cpars$Wt_age_C = OMv@a*OMv@cpars$Len_age^OMv@b
+  Ierr[,yind]=Ierr[,yind]*multarray
+  OMv@cpars$Ierr_y = Ierr
+  OMv
+}
+
+doC = function(X, incmat,val_list){ # only deterministic currently
+  inc = incmat[,X]
+  OMv = val_list[[X]]
+  multarray = make_mult_array(OMv,inc,increasing=F)
+  multarray2 = aperm(array(multarray,c(OMv@nsim, OMv@proyears, OMv@maxage+1)),c(1,3,2))
+  yind=OMv@nyears+(1:OMv@proyears)
+  OMv@cpars$Wt_age[,,yind] =  multarray2*OMv@cpars$Wt_age[,,yind]
+  OMv@cpars$Wt_age_C[,,yind] =  multarray2*OMv@cpars$Wt_age_C[,,yind]
   OMv
 }
 

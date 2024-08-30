@@ -56,3 +56,23 @@ Yrel = function (MSEobj = NULL, Ref = 1, Yrs = c(19,21))  {
   
 }
 class(Yrel) <- 'PM'
+
+
+Brel = function (MSEobj = NULL, Ref = 1, Yrs = c(19,21))  {
+  Yrs <- ChkYrs(Yrs, MSEobj)
+  PMobj <- new("PMobj")
+  PMobj@Name <- "Brel: Spawning biomass years 19-21 relative to year 0"
+  PMobj@Caption <- "Spawning biomass years 19-21 relative to year 0 "
+  
+  PMobj@Ref <- Ref
+  brel = MSEobj@SSB[,,Yrs[1]:Yrs[2]] / MSEobj@SSB_hist[,MSEobj@nyears]
+  
+  tt <- brel
+  PMobj@Stat <- tt
+  PMobj@Prob <- calcProb(PMobj@Stat, MSEobj)
+  PMobj@Mean <- calcMean(PMobj@Prob) # same as apply(yrel,2,mean)
+  PMobj@MPs <- MSEobj@MPs
+  PMobj
+  
+}
+class(Brel) <- 'PM'

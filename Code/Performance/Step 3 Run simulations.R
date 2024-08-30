@@ -6,8 +6,7 @@
 
 
 library(openMSE)
-setwd('C:/GitHub/ClimateTest')
-setwd('C:/Users/tcarruth/Documents/GitHub/ClimateTest')
+setwd('C:/GitHub/ClimateTest') #  setwd('C:/Users/tcarruth/Documents/GitHub/ClimateTest')
 
 
 # --- Source code for OM modifications and performance metrics -------------------
@@ -29,25 +28,25 @@ OM = readRDS('OMs/Performance/BET.rds')
 
 
 # --- set up cluster and calculate MSE results for various climate scenarios -----
-nval = 9
+nval = 7
 setup(cpus = nval)
 sfExport('doRec') # export any functions used by MPs
 sfExport(list = MPs)
 
 
 horizon = 20
-maxpercs = c(M = 27, R = 56, K = 27)
+maxpercs = c(M = 12, R = 36, K = 24, S = 180, C = 60)
 ntypes = length(maxpercs)
 
 for(tt in 1:ntypes){
-  
+
   type = names(maxpercs)[tt]
   MSEobjname = paste0("MSEs_",type)
   percs = seq(0,maxpercs[tt],length.out = nval)
-  assign(MSEobjname, CT_perf(list(OM), MPs, type, percs, horizon))
-  # saveRDS(get(MSEobjname),paste0("MSEs/Performance/",MSEobjname,".rds")) # too large
+  assign(MSEobjname, CT_perf(OM_list=list(OM), MPs, type, percs, horizon))
+  saveRDS(get(MSEobjname),paste0("C:/temp/ClimateTest/",MSEobjname,".rds")) # too large
   
-  Bmetric = sapply(get(MSEobjname),function(X)PGK_stat(X)@Mean)
+  Bmetric = sapply(get(MSEobjname),function(X)Brel(X)@Mean)
   Ymetric = sapply(get(MSEobjname),function(X)Yrel(X)@Mean)
   rownames(Bmetric) = rownames(Ymetric) = MPs
   colnames(Bmetric) = colnames(Ymetric) = percs
