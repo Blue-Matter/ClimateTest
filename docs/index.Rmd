@@ -1,0 +1,125 @@
+---
+title: "Developing the Climate Test: Metrics for Climate Robustness"
+author: "Tom Carruthers <tom@bluematterscience.com>"
+date: "`r format(Sys.time(), '%d %B, %Y')`"
+output: html_document
+---
+&nbsp;
+
+
+<style>
+  .col2 {
+    columns: 2 200px;         /* number of columns and width in pixels*/
+    -webkit-columns: 2 200px; /* chrome, safari */
+    -moz-columns: 2 200px;    /* firefox */
+  }
+  .col3 {
+    columns: 3 100px;
+    -webkit-columns: 3 100px;
+    -moz-columns: 3 100px;
+  }
+  .col4 {
+    columns: 4 100px;
+    -webkit-columns: 4 100px;
+    -moz-columns: 4 100px;
+  }
+</style>
+
+***
+
+<img src="img/Front Page.jpg" width = 910>
+
+***
+
+&nbsp;
+
+<img src="img/BM.jpg" width="140">
+<img src="img/openMSE.jpg" width="150">
+
+
+
+***
+
+```{r setup, include=FALSE}
+library(dplyr)
+library(kableExtra)
+library(viridis)
+library(DT)
+
+# --- Source code for OM modifications and performance metrics -------------------
+
+source('../Code/Performance/source/Results.r')
+
+types = c("M", "R", "K","S","C") 
+desc = c("Natural mortality","Recruitment level", "Somatic growth", "Spatial / catchability","Condition factor")
+ntypes = length(types)
+Blist = lapply(1:ntypes,function(X,types)readRDS(paste0("../Results/Performance/",types[X],"_PGKstat.rds")),types=types)
+names(Blist) = types
+
+MPdesc = paste(rep(c("Index target","Index ratio","Index slope"),each=2),c("5% change","10% change"))
+
+tab = CT_tabulate(Blist, targlev=0.7, subset = c(1,2,3,5))
+tab = cbind(Management_procedure = MPdesc,tab )
+
+makeCTtab = function(tab){
+   labs = colnames(tab)[2:ncol(tab)]
+   sketch = htmltools::withTags(table(
+        class = 'display',
+        thead(
+          tr(
+            th(rowspan = 2, 'Management Procedure'),
+            th(colspan = nrow(tab)-1, "Climate Test")
+            ),
+          tr(
+            lapply(labs, th)
+          )
+        )
+   
+      ))
+  
+  
+  dt<-datatable(tab,caption=NULL,rownames = F,container=sketch) 
+  nbk <- 1000
+  clrs <- rainbow(nbk + 1, start=0.03,end=0.23)
+  for(j in 2:ncol(tab)){
+    brks <- seq(0,max(tab[,j]),length.out=nbk)
+    dt <- formatStyle(dt, columns = j, backgroundColor = DT::styleInterval(brks, clrs))# ,'text-align' = 'center')
+  }
+ 
+  dt
+
+}
+
+```
+
+#### Table
+
+Bla bla. 
+
+```{r CT_Tab, eval=T, results='asis'}
+makeCTtab(tab)
+
+```
+
+&nbsp;
+
+### Disclaimer
+
+The following work is preliminary and intended only as tool for eliciting feedback on data, modelling and other aspects. 
+
+None of these results are final. 
+
+These analyses do not necessarily reflect the point of view of ICCAT, The Ocean Foundation or other funders and in no way anticipate future policy in this area.
+
+***
+
+
+### Acknowledgements
+
+This research was funded by The Ocean Foundation.  
+
+
+***
+
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+

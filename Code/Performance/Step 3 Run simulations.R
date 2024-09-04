@@ -53,7 +53,7 @@ for(tt in 1:ntypes){
   saveRDS(Bmetric,paste0("Results/Performance/",type,"_PGKstat.rds")) 
   saveRDS(Ymetric,paste0("Results/Performance/",type,"_Yrel.rds")) 
   
-  cat(paste0("Completed ", type," (",tt,"/",ntypes,")"))
+  cat(paste0("Completed ", type," (",tt,"/",ntypes,") /n"))
   
 }
 
