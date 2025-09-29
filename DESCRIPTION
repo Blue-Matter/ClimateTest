@@ -1,16 +1,28 @@
 Package: ClimateTest
 Type: Package
-Title: What the Package Does (Title Case)
+Title: Rating the Climate Readiness of Fishery Management Procedures
 Version: 0.1.0
 Authors@R: c(
     person(
-      "Jane", "Doe",
-      email = "jane@example.com",
+      "Tom", "Carruthers",
+      email = "tom@bluematterscience.com",
       role = c("aut", "cre")
     )
   )
-Description: More about what it does (maybe more than one line).
-    Continuation lines should be indented.
-License: What license is it under?
+Description: Forecasting climate impacts on exploited marine populations is
+    highly uncertain. Forecasting models have struggled to pass typical 
+    requirements of peer-review. This has been an impediment to the adoption of
+    fishery management procedures that are demonstrably climate robust. 
+    Climate Test rephrases the evaluation of management procedures, focusing on
+    management procedure performance given increasingly extreme climate scenarios
+    rather than performance for a scientifically defensible projection. This is 
+    analogous to testing pilots in a simulator of extreme weather conditions. 
+    It is possible to simulation test pilots to find the pilot that is best able
+    to fly in challenging weather conditions without a precise weather forecast. 
+    Similarly, the Climate Test ramps up climate impacts to rate candidate 
+    management procedures according to their ability to navigate increasingly 
+    challenging climate impacts. 
+   
+License: GNU-3
 Encoding: UTF-8
 LazyData: true
