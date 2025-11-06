@@ -1,7 +1,7 @@
 Package: ClimateTest
 Type: Package
 Title: Rating the Climate Readiness of Fishery Management Procedures
-Version: 0.1.0
+Version: 0.2.1
 Authors@R: c(
     person(
       "Tom", "Carruthers",
@@ -22,7 +22,6 @@ Description: Forecasting climate impacts on exploited marine populations is
     Similarly, the Climate Test ramps up climate impacts to rate candidate 
     management procedures according to their ability to navigate increasingly 
     challenging climate impacts. 
-   
 License: GNU-3
 Encoding: UTF-8
 LazyData: true

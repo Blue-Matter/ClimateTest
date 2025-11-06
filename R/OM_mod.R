@@ -102,33 +102,35 @@ OM_mod = function(OM_list, type, percs, horizon){
 
 # OM_list = list(OM); MPs = paste0(rep(c("It","Ir","Is"),each=2),rep(c("_5","_10"),3),"t"); type ="M"; maxperc=18; horizon = 20; nval = 7; parallel = T
 
-CT_perf = function(OM_list, MPs, type = "M", percs, horizon=20, parallel = T){
- 
- nOM = length(OM_list)  # number of operating models
- nval = length(percs)   # number of percentage changes to test
- OMs = OM_mod(OM_list, type, percs, horizon) # a nested list of OMs: OMs[[nOM]][[nval]]
- 
- MSEs = list()
- 
- # for each OM, run the nval scenarios
- for(i in 1:nOM){
-   if(!parallel)MSEs[[i]] = lapply(OMs[[i]],runMSE(X,MPs),MPs=MPs)  # OMs for each value within OM_list object
-   if(parallel)MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs)runMSE(X,MPs),MPs=MPs)
- }
 
- # join (across nOM) the MSEs into one per nval scenario  
- if(nOM == 1) MSEjoin = MSEs[[1]]
- if(nOM > 1){
-   MSEjoin = list()
-   for(i in 1:nval){
-     MSEobjs = list()
-     for(x in 1:nOM)   MSEobjs[[x]] = MSEs[[x]][[i]] #list across x OMs for the same val i
-     MSEjoin[[i]] = joinMSE(MSEobjs) # join over OMs for perf calc
-   }
- }
- 
- MSEjoin # a list of MSEs nval long MSEjoin[[nval]]
-  
+CT_perf = function(OM_list, MPs, type = "M", percs, horizon=20, parallel = T){
+
+  nOM = length(OM_list)  # number of operating models
+  nval = length(percs)   # number of percentage changes to test
+  OMs = OM_mod(OM_list, type, percs, horizon) # a nested list of OMs: OMs[[nOM]][[nval]]
+
+  MSEs = list()
+
+  # for each OM, run the nval scenarios
+  for(i in 1:nOM){
+    if(!parallel)MSEs[[i]] = lapply(OMs[[i]],function(X,MPs){runMSE(X,MPs)},MPs=MPs)  # OMs for each value within OM_list object
+    if(parallel)MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs){runMSE(X,MPs)},MPs=MPs)
+  }
+
+  # join (across nOM) the MSEs into one per nval scenario
+  if(nOM == 1) MSEjoin = MSEs[[1]]
+  if(nOM > 1){
+    MSEjoin = list()
+    for(i in 1:nval){
+      MSEobjs = list()
+      for(x in 1:nOM)   MSEobjs[[x]] = MSEs[[x]][[i]] #list across x OMs for the same val i
+      MSEjoin[[i]] = joinMSE(MSEobjs) # join over OMs for perf calc
+    }
+  }
+
+  MSEjoin # a list of MSEs nval long MSEjoin[[nval]]
+
 }
+
 
 
