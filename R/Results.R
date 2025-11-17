@@ -2,26 +2,26 @@
 
 
 CT_tabulate = function(Blist, targlev = 0.7, subset = c(1,2,3,5)){
-  
+
   MPs = rownames(Blist[[1]])
   nMPs = length(MPs)
-  types = names(Blist)
-  ntypes = length(types)
-  
-  tab = array(NA,c(nMPs,ntypes))
-  
-  for(tt in 1:ntypes){ # use linear interpolation to fill table
+  tests = names(Blist)
+  ntests = length(tests)
+
+  tab = array(NA,c(nMPs,ntests))
+
+  for(tt in 1:ntests){ # use linear interpolation to fill table
     Bmat = Blist[[tt]]
     vals = as.numeric(colnames(Bmat))
     for(mm in 1:nMPs){
       tab[mm,tt] = floor(approx(Bmat[mm,],vals,targlev)$y)
     }
   }
-  
+
   rownames(tab) = MPs
   colnames(tab) = types
   tab[,subset]
-  
+
 }
 
 
@@ -39,15 +39,15 @@ makeCTtab = function(tab){
       )
     )
   ))
-  
-  dt<-datatable(tab,caption=NULL,rownames = F,container=sketch) 
+
+  dt<-datatable(tab,caption=NULL,rownames = F,container=sketch)
   nbk <- 1000
   clrs <- rainbow(nbk + 1, start=0.05,end=0.21)
   for(j in 2:ncol(tab)){
     brks <- seq(0,max(tab[,j]),length.out=nbk)
     dt <- formatStyle(dt, columns = j, backgroundColor = DT::styleInterval(brks, clrs))# ,'text-align' = 'center')
   }
-  
+
   dt
 }
 
