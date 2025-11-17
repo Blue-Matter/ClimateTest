@@ -6,13 +6,16 @@ eval_tune = function (MPobj, Hist_list, minfunc){
   minfunc(MSE_list)
 }
 
+CT_prep = function(OM_list){
+  Hist_list = sfLapply(OM_list,Simulate)
+  lapply(Hist_list,do_all)
+}
 
 CT_tune = function(OM_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, MP_par_intervals = NA ,near_enough = 1E-4, tol = 0.005 ){
 
   sfExport(list = MPs)
+  Hist_list = OM_list
 
-  # Spool-up
-  Hist_list = sfLapply(OM_list, Simulate)
 
   # Tuning MPs
   nMP = length(MPs)

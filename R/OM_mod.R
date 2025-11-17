@@ -8,92 +8,111 @@ getincmat = function(percs,proyears, MGT){
 
 # valOM = val_list[[2]]
 make_mult_array = function(OMv,inc,increasing=T){
-  dims = dim(OMv@cpars$M_ageArray)
-  np = OMv@proyears
-  ny = OMv@nyears
-  na = dims[2]
-  nsim = dims[1]
+  np = OMv@OM@proyears
+  ny = OMv@OM@nyears
+  na = OMv@OM@maxage+1
+  nsim = OMv@OM@nsim
   if(increasing)multarray = array(rep(inc,np)^rep(1:np,each=nsim),c(nsim,np))
   if(!increasing)multarray = array(rep(1/inc,np)^rep(1:np,each=nsim),c(nsim,np))
   multarray
 }
 
-
+# instantaneous natural mortality rate
 doM = function(X,incmat,val_list){
   inc = incmat[,X]
   OMv = val_list[[X]]
   multarray = make_mult_array(OMv,inc)
-  yind=OMv@nyears+(1:OMv@proyears)
-  OMv@cpars$M_ageArray[,,yind] = OMv@cpars$M_ageArray[,,yind] * aperm(array(multarray,c(OMv@nsim,OMv@proyears,OMv@maxage+1)),c(1,3,2))
+  yind=OMv@OM@nyears+(1:OMv@OM@proyears)
+  OMv@SampPars$Stock$M_ageArray[,,yind] = OMv@SampPars$Stock$M_ageArray[,,yind] * aperm(array(multarray,c(OMv@OM@nsim,OMv@OM@proyears,OMv@OM@maxage+1)),c(1,3,2))
   #matplot(t(OMv@cpars$M_ageArray[1:3,1,]),type="l")
   OMv
 }
 
+# Mean recruitment strength
 doR = function(X,incmat,val_list){
   inc = incmat[,X]
   OMv = val_list[[X]]
   multarray = make_mult_array(OMv,inc,increasing=F)
-  yind=OMv@maxage+OMv@nyears+(1:OMv@proyears)
-  OMv@cpars$Perr_y[,yind] = OMv@cpars$Perr_y[,yind] * multarray
+  yind=OMv@OM@maxage+OMv@OM@nyears+(1:OMv@OM@proyears)
+  OMv@SampPars$Stock$Perr_y[,yind] = OMv@SampPars$Stock$Perr_y[,yind] * multarray
   OMv
 }
 
-
-
+# Somatic growth
 doK = function(X, incmat,val_list){ # only deterministic currently
   inc = incmat[,X]
   OMv = val_list[[X]]
-  if(inc[1]!=1){ # temporary fix
-    old = OMv@cpars$Wt_age
-    old_C = OMv@cpars$Wt_age_C
-    multarray = make_mult_array(OMv,inc,increasing=F)
-    Karr = aperm(array(OMv@K[1]*multarray,c(OMv@nsim,OMv@proyears,OMv@maxage+1)),c(1,3,2))
-    agearray = aperm(array((0:OMv@maxage)+1,c(OMv@maxage+1,OMv@nsim, OMv@proyears)),c(2,1,3))
-    pro_len_age = OMv@Linf[1]*(1-exp(-Karr*(agearray-OMv@t0[1])))
-    yind = OMv@nyears+(1:OMv@proyears)
-    OMv@cpars$Len_age[,,yind] = pro_len_age
-    OMv@cpars$Wt_age =  OMv@a * OMv@cpars$Len_age ^ OMv@b
-    rat = OMv@cpars$Wt_age / old
-    OMv@cpars$Wt_age_C = OMv@cpars$Wt_age_C * rat
-  }
+  old = OMv@SampPars$Stock$Wt_age
+
+  multarray = make_mult_array(OMv,inc,increasing=F)
+  K = array(OMv@SampPars$Stock$K, c(OMv@OM@nsim, OMv@OM@proyears))
+  Karr = aperm(array(K*multarray,c(OMv@OM@nsim,OMv@OM@proyears,OMv@OM@maxage+1)),c(1,3,2))
+  Linf = array(OMv@SampPars$Stock$Linf, c(OMv@OM@nsim, OMv@OM@proyears))
+  Linfarr = aperm(array(Linf,c(OMv@OM@nsim,OMv@OM@proyears,OMv@OM@maxage+1)),c(1,3,2))
+  t0 = array(OMv@SampPars$Stock$t0, c(OMv@OM@nsim, OMv@OM@proyears))
+  t0arr = aperm(array(t0,c(OMv@OM@nsim,OMv@OM@proyears,OMv@OM@maxage+1)),c(1,3,2))
+
+  agearray = aperm(array((0:OMv@OM@maxage),c(OMv@OM@maxage+1,OMv@OM@nsim, OMv@OM@proyears)),c(2,1,3))
+  pro_len_age = Linfarr*(1-exp(-Karr*(agearray+t0arr)))
+  yind = OMv@OM@nyears+(1:OMv@OM@proyears)
+  OMv@SampPars$Stock$Len_age[,,yind] = pro_len_age
+
+  OMv@SampPars$Stock$Wt_age =  OMv@OM@a *OMv@SampPars$Stock$Len_age ^ OMv@OM@b
+  rat = OMv@SampPars$Stock$Wt_age  / old
+  OMv@SampPars$Fleet$Wt_age_C =  OMv@SampPars$Fleet$Wt_age_C * rat
+
   OMv
 }
 
+# Spatially-driven increase in catchability
 doS = function(X, incmat,val_list){ # only deterministic currently
   inc = incmat[,X]
   OMv = val_list[[X]]
-  Ierr = MSEtool::SampleObsPars(OMv)$Ierr_y
+  Ierr = OMv@SampPars$Obs$Ierr_y #MSEtool::SampleObsPars(OMv)$Ierr_y
   multarray = make_mult_array(OMv,inc,increasing=T)
-  yind=OMv@nyears+(1:OMv@proyears)
+  yind=OMv@OM@nyears+(1:OMv@OM@proyears)
   Ierr[,yind]=Ierr[,yind]*multarray
-  OMv@cpars$Ierr_y = Ierr
-  OMv@qinc = rep((inc-1)*100,2)
+  OMv@SampPars$Obs$Ierr_y = Ierr
+  OMv@SampPars$Fleet$qinc[] = (inc-1)*100
   OMv
 }
 
+# Condition Factor
 doC = function(X, incmat,val_list){ # only deterministic currently
   inc = incmat[,X]
   OMv = val_list[[X]]
   multarray = make_mult_array(OMv,inc,increasing=F)
-  multarray2 = aperm(array(multarray,c(OMv@nsim, OMv@proyears, OMv@maxage+1)),c(1,3,2))
-  yind=OMv@nyears+(1:OMv@proyears)
-  OMv@cpars$Wt_age[,,yind] =  multarray2*OMv@cpars$Wt_age[,,yind]
-  OMv@cpars$Wt_age_C[,,yind] =  multarray2*OMv@cpars$Wt_age_C[,,yind]
+  multarray2 = aperm(array(multarray,c(OMv@OM@nsim, OMv@OM@proyears, OMv@OM@maxage+1)),c(1,3,2))
+  yind=OMv@OM@nyears+(1:OMv@OM@proyears)
+  OMv@SampPars$Stock$Wt_age[,,yind] =  multarray2 * OMv@SampPars$Stock$Wt_age[,,yind]
+  OMv@SampPars$Fleet$Wt_age_C[,,yind] =  multarray2 * OMv@SampPars$Fleet$Wt_age_C[,,yind]
   OMv
 }
 
-OM_mod = function(OM_list, type, percs, horizon){
+do_all = function(Hist){
+  X = 1
+  incmat = array(1,c(Hist@OM@nsim,1))
+  Hist1 = doC(1,incmat,list(Hist))
+  Hist2 = doS(1,incmat,list(Hist1))
+  Hist3 = doM(1,incmat,list(Hist2))
+  Hist4 = doK(1,incmat,list(Hist3))
+  Hist5 = doR(1,incmat,list(Hist4))
+  Hist5
+}
+
+
+
+OM_mod = function(Hist_list, test, percs, horizon){
   #MSE_list = lapply(OM_list,function(X)runMSE(X,Hist=T))
   ni = length(percs)
   out=list()
-  for(i in 1:length(OM_list)){
-    MGT = rep(horizon, OM_list[[i]]@nsim) #floor(MSE_list[[i]]@OMPars$MGT)
-    incmat = getincmat(percs,proyears,MGT) # annual multiplier by sim and perc
-    val_list = rep(list(OM_list[[i]]),ni)
+  for(i in 1:length(Hist_list)){
+    MGT = rep(horizon, Hist_list[[i]]@OM@nsim) # floor(MSE_list[[i]]@OMPars$MGT)
+    incmat = getincmat(percs,proyears,MGT)   # annual multiplier by sim and perc
+    val_list = rep(list(Hist_list[[i]]),ni)
     val_list2 = list()
-    for(X in 1:ni){
-      val_list2[[X]] = do.call(paste0("do",type),args=list(X=X,incmat=incmat,val_list=val_list))
-    }
+    for(X in 1:ni)  val_list2[[X]] = do.call(paste0("do",test),args=list(X=X,incmat=incmat,val_list=val_list))
+
     out[[i]]= val_list2
   }
   out

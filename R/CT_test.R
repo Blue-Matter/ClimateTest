@@ -1,13 +1,13 @@
 
-CT_perf = function(OM_list, MPs,test = "M", percs, horizon=20, parallel = T){
+CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
 
-  nOM = length(OM_list)  # number of operating models
+  nOM = length(Hist_list)  # number of operating models
   nval = length(percs)   # number of percentage changes to test
-  OMs = OM_mod(OM_list, test, percs, horizon) # a nested list of OMs: OMs[[nOM]][[nval]]
+  OMs = OM_mod(Hist_list, test, percs, horizon) # a nested list of OMs: OMs[[nOM]][[nval]]
   MSEs = list()
 
   # for each OM, run the nval scenarios
-  for(i in 1:nOM) MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs){runMSE(X,MPs)},MPs=MPs)
+  for(i in 1:nOM) MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs){Project(X,MPs)},MPs=MPs)
 
   # join (across nOM) the MSEs into one per nval scenario
   if(nOM == 1) MSEjoin = MSEs[[1]]
@@ -26,26 +26,26 @@ CT_perf = function(OM_list, MPs,test = "M", percs, horizon=20, parallel = T){
 
 
 
-CT = function(OM_list, MPs_tuned, ninc = 5, horizon = 20,
+CT_test = function(Hist_list, MPs_tuned, ninc = 5, horizon = 20,
                  tests = c(M = 15, R = 40, K = 25, S = 180, C = 60)){
 
   ntests = length(tests)
   nMP = length(MPs_tuned)
-  MPnames = names(MPs_tuned)
+  MPs = names(MPs_tuned)
 
-  for(mp in 1:nMP)assign(MPnames[mp], MPs_tuned[[mp]])
-  sfExport(list = MPnames)
+  for(mp in 1:nMP)assign(MPs[mp], MPs_tuned[[mp]])
+  sfExport(list = MPs)
 
   Bmetric = Ymetric = list()
   MSEs = list()
   levlist = array(NA,c(ntests,ninc))
 
   for(tt in 1:ntests){
-    type = names(tests)[tt]
+    test = names(tests)[tt]
     percs = seq(0,tests[tt],length.out = ninc)
     levlist[tt, ] = percs
-    MSEs[[tt]] = CT_perf(OM_list=OM_list, MPs = MPnames, type, percs, horizon, parallel = T) # a list of MSE objects ninc long
-    cat(paste0(type, " Marginal Climate Test completed (",tt,"/",ntests,") \n"))
+    MSEs[[tt]] = CT_perf(Hist_list, MPs, test, percs, horizon, parallel = T) # a list of MSE objects ninc long
+    cat(paste0(test, " marginal climate test completed (",tt,"/",ntests,") \n"))
   }
   rownames(levlist) = names(tests)
 
