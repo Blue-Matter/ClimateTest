@@ -29,7 +29,7 @@ CT_tune = function(OM_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, M
   if(is.na(MP_par_intervals[1])){
     cat("Determining tuning parameter search ranges from initial argument values \n")
     parinit = as.numeric(sapply(1:nMP,function(x,MPs,MP_par_nams){formals(get(MPs[x]))[MP_par_nams[x]]},MPs=MPs, MP_par_nams=MP_par_nams))
-    cat(paste0("Initial tuning parameter values for MPs (",paste(MPs,collapse=", "),") are (", paste0(round(parinit,3),collapse=", "),") \n"))
+    cat(paste0("Initial tuning parameter (",paste(MP_par_nams,collapse=", "),") values for MPs (",paste(MPs,collapse=", "),") are (", paste0(round(parinit,3),collapse=", "),") \n"))
     MP_par_intervals = lapply(parinit,function(x)c(x/3, 3*x))
     names(MP_par_intervals) = paste0(MPs,"-",MP_par_nams)
     cat("Tuning parameter ranges are: \n")

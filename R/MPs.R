@@ -15,7 +15,7 @@
 #' Ir(1, Example_datafile)
 #' @author T. Carruthers
 #' @export
-Ir = function (x, Data, reps = 1, tune = 1, nyrs = 3, maxchng = 0.2, maxTACrat = 10, calib_yrs = 5) {
+Ir = function (x, Data, reps = 1, tune = 1, nyrs = 3, maxchng = 0.1, maxTACrat = 10, calib_yrs = 5) {
   ind = match(Data@LHYear, Data@Year) - (calib_yrs-1):0
   maxTAC = mean(Data@Cat[x, ind])*maxTACrat
   CpI = mean(Data@Cat[x, ind])/mean(Data@Ind[x, ind], na.rm = T)
@@ -45,7 +45,7 @@ class(Ir) = "MP"
 #' It(1, Example_datafile)
 #' @author T. Carruthers
 #' @export
-It = function (x, Data, reps = 1, tune = 1, nyrs = 3, maxchng = 0.2, maxTACrat = 10, calib_yrs = 5) {
+It = function (x, Data, reps = 1, tune = 1, nyrs = 3, maxchng = 0.1, maxTACrat = 10, calib_yrs = 5) {
   hind = match(Data@LHYear, Data@Year) - (calib_yrs-1):0
   nowind = length(Data@Ind[x,])- ((nyrs - 1):0)
   maxTAC = mean(Data@Cat[x, hind])*maxTACrat
