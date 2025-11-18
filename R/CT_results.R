@@ -55,7 +55,9 @@ makeCTtab = function(tab){
 }
 
 
-CT_proj = function(data, test = NA, MPs = NA, targlev=0.9, rnd=1, denom = 1E3, units = "kt"){
+CT_proj = function(data, horizon = 20, test = NA, MPs = NA, targlev=0.9,
+                   rnd=1, denom = 1E3, unit = "kt", fracextra = 0.3,
+                   CurYr = 2019, MPlab_adj = 1.2){
 
   tests = rownames(data$levlist)
   if(is.na(test[1]))test = tests[1]
@@ -74,39 +76,40 @@ CT_proj = function(data, test = NA, MPs = NA, targlev=0.9, rnd=1, denom = 1E3, u
   nMP = length(MPnos)
 
   par(mfrow=c(nMP,2),mai = c(0.4,0.4,0.4,0.01),omi=c(0.25,0.25,0.01,0.01))
-  mpadj = c(1.6,1.6)
+  nextra = ceiling(horizon * fracextra)
 
   for(mm in MPnos){
     cols = viridis(nM, begin=1, end=0)
-    Bio = sapply(MSEs,function(X,mm,rng)c(mean(X@SSB_hist[,X@proyears]),apply(X@SSB[,mm,rng],2,mean)),mm=mm,rng=1:21)
+    Bio = sapply(MSEs,function(X,mm,rng)c(mean(X@SSB_hist[,X@nyears]),apply(X@SSB[,mm,rng],2,mean)),mm=mm,rng=1:horizon)
     Bio = Bio / denom
-    CT_proj_plot(Bio,cols,levs, ref=targlev,nextra=6, CurYr = 2019, Horizon = 22,nyplot = 20)
-    mtext(paste0(" MP (",MPs[mm],")"),3,adj=mpadj[mm],outer=F,line=0.5)
-    CT_intplot(Blisty,mm,MPs,test,levs,Bio,cols,refyr = 22,ref=targlev)
-    mtext(paste0("Mean spawning stock biomass (",units,")"),2,line=0.175,outer=T)
-    mtext(c("Projection Year","% Decline in K After 20 Years"),1,adj=c(0.25,0.92),line=0.2,outer=T)
+    CT_proj_plot(Bio,cols,levs, ref=targlev, nextra=nextra, CurYr = CurYr, Horizon = horizon, nyplot = horizon, test)
+    mtext(MPs[mm],3,adj=MPlab_adj,outer=F,line=0.5,font=2)
+    CT_intplot(Blisty,mm,MPs,test,levs,Bio,cols,horizon = horizon,ref=targlev)
   }
+  mtext(paste0("Mean spawning stock biomass (",unit,")"),2,line=0.175,outer=T)
+  mtext(c("Projection Year","% Decline in K After 20 Years"),1,adj=c(0.25,0.92),line=0.2,outer=T)
 
 }
 
 
-CT_proj_plot = function(Bio, cols, levs,ref=0.7,nextra=5, CurYr = 2019, Horizon = 21,nyplot = 20){
+CT_proj_plot = function(Bio, cols, levs,ref=0.7,nextra=5, CurYr = 2019, Horizon = 21,nyplot = 20, test){
   endB = Bio[nrow(Bio),]
-  Bio = rbind(Bio,array(NA,c(nextra,ncol(Bio))))
-  Bio = Bio[,ncol(Bio):1]
-  Yrs = (CurYr-1) +(1:nrow(Bio))
-  matplot(Yrs,Bio,ylim=c(0,max(Bio,na.rm=T)*1.025),col="white"); grid()
-  abline(h=c(1,ref) * Bio[Horizon,ncol(Bio)],col=c("black","red"),lwd=1,lty=c(2,1))
-  abline(v=c(CurYr+Horizon-1),lty=2,lwd=1)
-  matplot(Yrs,Bio,type="l",col=cols,add=T,lwd=2,lty=1)
-  projx = CurYr+nrow(Bio)-0.5-nextra/2
-  text(projx,endB,paste0("-",levs,"% K"),col=rev(cols))
-  text(CurYr+5,Bio[1,1]*0.93,"MP tuning",font=3)
-  text(CurYr+5,(Bio[1,1]*ref)-Bio[1,1]*0.07,"Robustness threshold",font=3,col="red")
+  Bio2 = rbind(Bio,array(NA,c(nextra,ncol(Bio))))
+  Bio2 = Bio2[,ncol(Bio2):1]
+  Yrs = (CurYr-1) +(1:nrow(Bio2))
+  labx = horizon * 0.3
+  matplot(Yrs, Bio2, ylim=c(0,max(Bio,na.rm=T)*1.025),col="white"); grid()
+  abline(h=c(1,ref) * Bio[nrow(Bio),1],col=c("black","red"),lwd=1,lty=c(2,1))
+  abline(v=c(CurYr+Horizon),lty=2,lwd=1)
+  matplot(Yrs,Bio2,type="l",col=cols,add=T,lwd=2,lty=1)
+  projx = CurYr+nrow(Bio2)-0.5-nextra/2
+  text(projx,endB,paste0(levs,"%",test),col=rev(cols))
+  text(CurYr+labx,Bio2[1,1]*0.93,"MP tuning",font=3)
+  text(CurYr+labx,(Bio2[1,1]*ref)-Bio2[1,1]*0.07,"Robustness threshold",font=3,col="red")
 }
 
-CT_intplot = function(Blisty,mm,MPs,type,levs,Bio,cols,ref=0.7,refyr = 22){
-  Bref = Bio[refyr,]
+CT_intplot = function(Blisty,mm,MPs,test,levs,Bio,cols,ref=0.7,horizon = 22){
+  Bref = Bio[horizon+1,]
   plot(as.numeric(levs),Bref,ylim=c(0,max(Bio,na.rm=T)*1.025),pch=19,col="white")
   grid()
   abline(h=Bref,col=rev(cols),lty=2)
@@ -114,7 +117,7 @@ CT_intplot = function(Blisty,mm,MPs,type,levs,Bio,cols,ref=0.7,refyr = 22){
   out = approx(Bref,as.numeric(levs),Bref[1]*ref)$y
   abline(v=out,col="red")
   text(out-3,Bref[1]*0.05,paste0(round(out,2),"%"),col='red')
-  legend('topright',legend=paste0("MP ",MPs[mm]," is '",type,floor(out),"' robust"),text.col='red',bg="#ffffff99",box.col=NA)
+  legend('topright',legend=paste0("MP ",MPs[mm]," is '",test,floor(out),"' robust"),text.col='red',bg="#ffffff99",box.col=NA)
   points(as.numeric(levs),Bref,pch=19,col=rev(cols))
 }#
 
