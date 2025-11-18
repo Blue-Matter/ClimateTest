@@ -1,7 +1,7 @@
 
 
 
-CT_tabulate = function(Blist, targlev = 0.7, subset = c(1,2,3,5)){
+CT_tabulate = function(Blist, targlev = 0.9, subset = c(1,2,3,4,5)){
 
   MPs = rownames(Blist[[1]])
   nMPs = length(MPs)
@@ -19,31 +19,34 @@ CT_tabulate = function(Blist, targlev = 0.7, subset = c(1,2,3,5)){
   }
 
   rownames(tab) = MPs
-  colnames(tab) = types
+  colnames(tab) = tests
   tab[,subset]
 
 }
 
 
 makeCTtab = function(tab){
-  labs = colnames(tab)[2:ncol(tab)]
+  labs = colnames(tab)[1:ncol(tab)]
   sketch = htmltools::withTags(table(
     class = 'display',
     thead(
       tr(
         th(rowspan = 2, 'Management Procedure'),
-        th(colspan = nrow(tab)-1, "Climate Test")
+        th(colspan = ncol(tab), "Climate Test")
       ),
       tr(
-        lapply(labs, th)
+        lapply(labs, th, colspan=1) #function(x)th(colspan=1,x))
       )
     )
   ))
 
-  dt<-datatable(tab,caption=NULL,rownames = F,container=sketch)
+  dt<-datatable(tab,caption=NULL,rownames = T,container=sketch, options = list(
+    searching = FALSE,  # Disables the global search box
+    lengthChange = FALSE # Disables the "Show X entries" menu
+  ))
   nbk <- 1000
   clrs <- rainbow(nbk + 1, start=0.05,end=0.21)
-  for(j in 2:ncol(tab)){
+  for(j in 1:ncol(tab)){
     brks <- seq(0,max(tab[,j]),length.out=nbk)
     dt <- formatStyle(dt, columns = j, backgroundColor = DT::styleInterval(brks, clrs))# ,'text-align' = 'center')
   }
@@ -51,6 +54,40 @@ makeCTtab = function(tab){
   dt
 }
 
+
+CT_proj = function(data, test = NA, MPs = NA, targlev=0.9, rnd=1, denom = 1E3, units = "kt"){
+
+  tests = rownames(data$levlist)
+  if(is.na(test[1]))test = tests[1]
+
+  allMPs = data$MSEs[[1]][[1]]@MPs
+  if(is.na(MPs[1]))MPs = allMPs
+
+  MSEs = data$MSEs[[match(test,tests)]]
+  nM = length(MSEs)
+
+  Blist = CT_metrics(data)$SSB_relative
+  Blisty = Blist[[match(test,tests)]]
+  levs = round(as.numeric(colnames(Blisty)),rnd)
+
+  MPnos = match(MPs, allMPs)
+  nMP = length(MPnos)
+
+  par(mfrow=c(nMP,2),mai = c(0.4,0.4,0.4,0.01),omi=c(0.25,0.25,0.01,0.01))
+  mpadj = c(1.6,1.6)
+
+  for(mm in MPnos){
+    cols = viridis(nM, begin=1, end=0)
+    Bio = sapply(MSEs,function(X,mm,rng)c(mean(X@SSB_hist[,X@proyears]),apply(X@SSB[,mm,rng],2,mean)),mm=mm,rng=1:21)
+    Bio = Bio / denom
+    CT_proj_plot(Bio,cols,levs, ref=targlev,nextra=6, CurYr = 2019, Horizon = 22,nyplot = 20)
+    mtext(paste0(" MP (",MPs[mm],")"),3,adj=mpadj[mm],outer=F,line=0.5)
+    CT_intplot(Blisty,mm,MPs,test,levs,Bio,cols,refyr = 22,ref=targlev)
+    mtext(paste0("Mean spawning stock biomass (",units,")"),2,line=0.175,outer=T)
+    mtext(c("Projection Year","% Decline in K After 20 Years"),1,adj=c(0.25,0.92),line=0.2,outer=T)
+  }
+
+}
 
 
 CT_proj_plot = function(Bio, cols, levs,ref=0.7,nextra=5, CurYr = 2019, Horizon = 21,nyplot = 20){
