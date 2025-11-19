@@ -8,9 +8,9 @@ It(
   x,
   Data,
   reps = 1,
-  targ = 1,
+  tune = 1,
   nyrs = 3,
-  maxchng = 0.2,
+  maxchng = 0.1,
   maxTACrat = 10,
   calib_yrs = 5
 )
@@ -22,7 +22,7 @@ It(
 
 \item{reps}{Not used}
 
-\item{targ}{Positive real number, TAC is set by TAC = lastTAC x Recent_index / (recent_historical_index x targ)}
+\item{tune}{Positive real number, TAC is set by TAC = lastTAC x Recent_index / (recent_historical_index x tune)}
 
 \item{nyrs}{integer, the number of recent years over which to average the index of abundance.}
 

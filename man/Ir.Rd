@@ -8,9 +8,9 @@ Ir(
   x,
   Data,
   reps = 1,
-  targ = 1,
+  tune = 1,
   nyrs = 3,
-  maxchng = 0.2,
+  maxchng = 0.1,
   maxTACrat = 10,
   calib_yrs = 5
 )
@@ -22,7 +22,7 @@ Ir(
 
 \item{reps}{Not used}
 
-\item{targ}{Positive real number, TAC is set by TAC = recent_index x targ x recent_historical_catch/recent_historical_index}
+\item{tune}{Positive real number, TAC is set by TAC = recent_index x tune x recent_historical_catch/recent_historical_index}
 
 \item{nyrs}{integer, the number of recent years over which to average the index of abundance.}
 

@@ -1,4 +1,5 @@
 
+# Internal function for evaluating the final tuning of the MP
 eval_tune = function (MPobj, Hist_list, minfunc){
   MPtest = MPobj
   sfExport("MPtest")
@@ -6,16 +7,46 @@ eval_tune = function (MPobj, Hist_list, minfunc){
   minfunc(MSE_list)
 }
 
-CT_prep = function(OM_list){
-  Hist_list = sfLapply(OM_list,Simulate)
+
+#' Climate Test Step 1: Spool up historical period of operating models and prepare projections to have zero climate impacts.
+#'
+#' Prior to tuning MPs, it is necessary to take the set of operating models and remove any existing climate impacts.
+#'
+#' @param OM_list A list of objects of class OM (e.g., BET_1, BET_2, BSH_1, BSH_2)
+#' @return A list of the same length of historically reconstructed operating models of class Hist
+#' @examples
+#' OM_list = list(BET_1,BET_2)       # Create a list of operating models of class 'OM'
+#' Hist_list = CT_1_prep(OM_list)    # Step 1 prep operating models
+#' @author T. Carruthers
+#' @export
+CT_1_prep = function(OM_list){
+  Hist_list = sfLapply(OM_list, Simulate)
   lapply(Hist_list,do_all)
 }
 
-CT_tune = function(OM_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, MP_par_intervals = NA ,near_enough = 1E-4, tol = 0.005 ){
+
+#' Climate Test Step 2: Tune MPs to a stable biomass outcome.
+#'
+#' A function that tunes a set of MPs to achieve current biomass levels in a specified number of years.
+#'
+#' @param Hist_list A list of objects of class Hist produced in the first step by CT_1_prep()
+#' @param MPs A vector of character strings that are the names of MPs.
+#' @param type Character string. The type of tuning - the default is 'SSB' a stable spawning stock biomass.
+#' @param horizon Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels.
+#' @param MP_par_names A vector of character strings as long as MPs - the names of the tuning parameters corresponding to each MP. By default the algorithm assumes the tuning parameters are an MP argument named 'tune'.
+#' @param MP_par_intervals A list (as long as MPs) of vectors, each vector 2 positions long. Optional. These are the lower and upper bounds of the search for the tuning parameter. The algorithm defaults to 1/3 - 3 x the default tuning parameter in each MP.
+#' @param near_enough Positive real number. Defaults to 1E-4. A measure of whether the tuning function got close enough to the target (e.g. stable SSB after 30 years). Expressed in units of the ratio of SSB(horizon) / SSB(current).
+#' @param tol Positive real number. the tolerance for convergence of Newton search (optimize). Converged when, between iterations, he tuning parameter changes less than this value.
+#' @return A list of tuned MP functions renamed x_CT.
+#' @examples
+#' OM_list = list(BET_1,BET_2)                     # Create a list of operating models of class 'OM'
+#' Hist_list = CT_1_prep(OM_list)                  # Step 1 prep operating models
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))   # Step 2 tune management procedures
+#' @author T. Carruthers
+#' @export
+CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, MP_par_intervals = NA ,near_enough = 1E-4, tol = 0.005 ){
 
   sfExport(list = MPs)
-  Hist_list = OM_list
-
 
   # Tuning MPs
   nMP = length(MPs)
@@ -40,12 +71,11 @@ CT_tune = function(OM_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, M
   formals(minfunc)$horizon = horizon
 
   tuned_MP_list = list()
-  MPnames = paste0(MPs,"_tuned")
+  MPnames = paste0(MPs,"_CT")
 
   for(mp in 1:nMP){
     cat(paste0("--- Tuning MP ",mp,"/",nMP,": ",MPs[mp]," ---------------- \n"))
     tuned_MP_list[[mp]] = tune_MP(Hist_list, MP = MPs[mp], MP_parname = MP_par_nams[mp], interval = MP_par_intervals[[mp]], minfunc, tol=tol, parallel=T)
-    #assign(MPnames[mp], tuned_MP_list[[mp]])
   }
   names(tuned_MP_list) = MPnames
 

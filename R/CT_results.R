@@ -156,7 +156,7 @@ summary_blank = function(x, y, yall, TT, RT, cols,grid){
   abline(h = c(TT,RT),col=c("black","red"),lty = c(2,2),lwd=2)
 }
 
-do_leg = function(cols, mplabcol){
+do_leg = function(cols, mplabcol,MPs){
   nMP = length(mplabcol)
   plot(1,1,col="white",axes=F,xlab="",ylab="")# polygon(c(-1E10,1E10,1E10,-1E10),c(-1E10,-1E10,1E10,1E10),col=cols[floor(length(cols)/1.5)],border=NA)
   lcol = c("black","red",mplabcol)
@@ -167,8 +167,8 @@ do_leg = function(cols, mplabcol){
          pch=c(NA,NA,rep(19,nMP)),
          col=lcol,
          cex=1.2,text.font=2,
-         bg=cols[floor(length(cols)/1.5)],
-         box.col="white")
+         bg= cols[floor(length(cols)/1.01)],
+         box.col="grey20")
 }
 
 plotedges =function(){
@@ -182,7 +182,29 @@ CT_approx = function(x,y,xout){
   approx(x[ind],y[ind],xout)
 }
 
-CT_summary = function(data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digits = 1, grid=F){
+
+
+#' Climate Test Step 4: Summarize the results of the marginal climate tests.
+#'
+#' Produces a figure showing the robustness of the various MPs with increasingly stringent climate tests
+#'
+#' @param data A hierarchical list produced in the third step by CT_3_test()
+#' @param tests A named list of the tests to plot (e.g. c('M', 'K', 'S', 'R', 'C'). Optional, defaults to all tests.
+#' @param MPs A named list of the MPs to plot (e.g. c('Ir_CT', 'It_CT'). Optional, defaults to all MPs
+#' @param RT Positive real fraction. Robustness threshold - the fraction of the current SSB.  Used for interpolating to obtain the corresponding percentage level for each MP.
+#' @param horizon Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels.
+#' @param digits Positive integer. The number of significant digits for the robustness percentages for each MP on the plot.
+#' @param grid Boolean. Should gridlines be superimposed on the plot?
+#' @return A multipanel figure.
+#' @examples
+#' OM_list = list(BET_1,BET_2)
+#' Hist_list = CT_1_prep(OM_list)
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
+#' data = CT_3_test(Hist_list, MPs_tuned)
+#' CT_4_summary(data)
+#' @author T. Carruthers
+#' @export
+CT_4_summary = function(data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digits = 1, grid=F){
 
   allTests = rownames(data$levlist)
   if(is.na(tests[1]))tests = allTests
@@ -197,11 +219,11 @@ CT_summary = function(data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digits
   mpcol = gray.colors(nMP,0,1,alpha=0.8)
   mplabcol = gray.colors(nMP,0,1)
 
-  ncol = floor((nT+1)^0.5)
+  ncol = max(floor((nT+1)^0.5),2)
   nrow = ceiling((nT+1)/ncol)
 
   cols = rev(viridis(200, begin=1, end=0.1))
-  par(mfrow = c(nrow,ncol),mai = c(0.5,0.4,0.18,0.01),omi=c(0.25,0.25,0.01,0.01))
+  par(mfrow = c(nrow,ncol),mai = c(0.55,0.4,0.18,0.01),omi=c(0.25,0.25,0.01,0.01))
   Blist = CT_metrics(data, horizon=horizon , 5)$SSB_relative
   yrng = range(unlist(Blist))
   yinc = (yrng[2]-yrng[1])/15
@@ -230,9 +252,9 @@ CT_summary = function(data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digits
 
   }
 
-  do_leg(cols, mplabcol)
+  do_leg(cols, mplabcol, MPs)
 
-  mtext(paste0("Relative Spawning Biomass after ",horizon, " projection years"),2,line=0.13,outer=T,font=2)
+  mtext(paste0("Relative SSB after ",horizon, " Proj. Yrs."),2,line=0.13,outer=T,font=2)
   mtext("Strength of Climate Test (% change)",1,line=0.2,outer=T,font = 2)
 
 }

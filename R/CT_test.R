@@ -1,4 +1,5 @@
 
+# Internal funciton for running the MPs on the various spooled up operating models
 CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
 
   nOM = length(Hist_list)  # number of operating models
@@ -26,8 +27,26 @@ CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
 
 
 
-CT_test = function(Hist_list, MPs_tuned, ninc = 5, horizon = 20,
-                 tests = c(M = 15, R = 40, K = 25, S = 180, C = 60)){
+
+#' Climate Test Step 3: Run the climate tests of tuned management procedures.
+#'
+#' Prior to tuning MPs, it is necessary to take the set of operating models and remove any existing climate impacts. Returns a list of the same length of historically reconstructed operating models of class Hist
+#'
+#' @param Hist_list A list of objects of class Hist produced in the first step by CT_1_prep()
+#' @param MPs_tuned A list of tuned MP functions produced in the second step by CT_2_tune()
+#' @param ninc Positive integer, the number of increments of each marginal climate test from which to linearly interpolate robustness
+#' @param horizon Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels. Should be the same as that used in CT_2_tune()
+#' @param tests Named vector of positive real numbers, which tests, and the % extent of each climate test. Default to c(M = 25, R = 50, K = 75, S = 200, C = 75) ie a 25% increase in natural mortality rate, a 50% decrease in recruitment strength, a 75% reduction in somatic growth, a 200% increase in spatial catchability, a 75% reduction in condition factor).
+#' @return A two position list that is (1) a hierarchical list of MSEs (tests then levels of tests) and  (2) a matrix with the the levels of the tests (e.g. the ninc levels of natural mortalty rate from zero to the maximum value)
+#' @examples
+#' OM_list = list(BET_1,BET_2)                     # Create a list of operating models of class 'OM'
+#' Hist_list = CT_1_prep(OM_list)                  # Step 1 prep operating models
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))   # Step 2 tune management procedures
+#' data = CT_3_test(Hist_list, MPs_tuned)          # Step 3 run the tuned MPs under a set of increasing marginal climate tests
+#' @author T. Carruthers
+#' @export
+CT_3_test = function(Hist_list, MPs_tuned, ninc = 8, horizon = 30,
+                 tests = c(M = 25, R = 50, K = 75, S = 200, C = 75)){
 
   ntests = length(tests)
   nMP = length(MPs_tuned)

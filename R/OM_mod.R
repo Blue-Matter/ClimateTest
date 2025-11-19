@@ -17,6 +17,21 @@ make_mult_array = function(OMv,inc,increasing=T){
   multarray
 }
 
+get_dim = function(OMv){
+  if(length(OMv@OM@nsim) ==1){ # OM
+    nsim = OMv@OM@nsim
+    nyears = OMv@OM@nyears
+    proyears = OMv@OM@proyears
+    maxage = OMv@OM@maxage
+  }else{                      #MOM
+    nsim = OMv@Misc$MOM@nsim
+    nyears = OMv@Misc$MOM@Fleets[[1]][[1]]@nyears
+    proyears = OMv@Misc$MOM@proyears
+    maxage = OMv@Misc$MOM@Stocks[[1]]@maxage
+  }
+  c(nsim = nsim, nyears = nyears, proyears = proyears, maxage = maxage)
+}
+
 # instantaneous natural mortality rate
 doM = function(X,incmat,val_list){
   inc = incmat[,X]
@@ -78,25 +93,51 @@ doS = function(X, incmat,val_list){ # only deterministic currently
 }
 
 # Condition Factor
-doC = function(X, incmat,val_list){ # only deterministic currently
-  inc = incmat[,X]
-  OMv = val_list[[X]]
+
+doC_int = function(inc,OMv){
+  dm = get_dim(OMv)
   multarray = make_mult_array(OMv,inc,increasing=F)
-  multarray2 = aperm(array(multarray,c(OMv@OM@nsim, OMv@OM@proyears, OMv@OM@maxage+1)),c(1,3,2))
-  yind=OMv@OM@nyears+(1:OMv@OM@proyears)
+  multarray2 = aperm(array(multarray,c(dm$nsim, dm$proyears, dm$maxage+1)),c(1,3,2))
+  yind=dm$nyears+(1:dm$proyears)
   OMv@SampPars$Stock$Wt_age[,,yind] =  multarray2 * OMv@SampPars$Stock$Wt_age[,,yind]
   OMv@SampPars$Fleet$Wt_age_C[,,yind] =  multarray2 * OMv@SampPars$Fleet$Wt_age_C[,,yind]
   OMv
 }
 
+doC = function(X, incmat,val_list){ # only deterministic currently
+  inc = incmat[,X]
+  OMv = val_list[[X]]
+  doC_int(inc, OMv)
+}
+
+doC_MOM = function(X, incmat,val_list){ # need to come back to this when the OM@nsim etc dimensions are sent to multiHist
+  inc = incmat[,X]
+  multiHist = val_list[[X]]
+  nstock = length(multiHist)
+  fleet = 1
+  for(ss in 1:nstock){
+    OMv =  multiHist[[ss]][[fleet]]
+    multiHist[[ss]][[fleet]] = doC_int(inc,OMv)
+  }
+}
+
 do_all = function(Hist){
-  X = 1
-  incmat = array(1,c(Hist@OM@nsim,1))
-  Hist1 = doC(1,incmat,list(Hist))
-  Hist2 = doS(1,incmat,list(Hist1))
-  Hist3 = doM(1,incmat,list(Hist2))
-  Hist4 = doK(1,incmat,list(Hist3))
-  Hist5 = doR(1,incmat,list(Hist4))
+
+  if(class(Hist) == 'Hist'){
+    incmat = array(1,c(Hist@OM@nsim,1))
+    Hist1 = doC(1,incmat,list(Hist))
+    Hist2 = doS(1,incmat,list(Hist1))
+    Hist3 = doM(1,incmat,list(Hist2))
+    Hist4 = doK(1,incmat,list(Hist3))
+    Hist5 = doR(1,incmat,list(Hist4))
+  }else{
+    incmat = array(1,c(Hist[[1]][[1]]@OM@nsim,1))
+    Hist1 = doC_MOM(1,incmat,list(Hist))
+    Hist2 = doS_MOM(1,incmat,list(Hist1))
+    Hist3 = doM_MOM(1,incmat,list(Hist2))
+    Hist4 = doK_MOM(1,incmat,list(Hist3))
+    Hist5 = doR_MOM(1,incmat,list(Hist4))
+  }
   Hist5
 }
 

@@ -58,15 +58,15 @@ td {  /* Table  */
    font-size: 12px;
 }
 h1 { /* Header 1 */
- font-size: 18px;
+ font-size: 19px;
  color: DarkBlue;
 }
 h2 { /* Header 2 */
- font-size: 15px;
+ font-size: 16px;
  color: DarkBlue;
 }
 h3 { /* Header 3 */
- font-size: 24px;
+ font-size: 14px;
  color: DarkBlue;
 }
 code.r{ /* Code block */
@@ -100,10 +100,12 @@ library(viridis)
 library(DT)
 library(data.table)
 library(plotly)
+library(miceadds)
+library(ClimateTest)
 
 # --- Source code for OM modifications and performance metrics -------------------
 
-source('../R/Results.r')
+source.all('../R')
 
 types = c("M", "R", "K","S","C") 
 desc = c("Natural mortality","Recruitment level", "Somatic growth", "Spatial / catchability","Condition factor")
@@ -113,7 +115,7 @@ names(Blist) = types
 
 MPdesc = paste(rep(c("Index target","Index ratio","Index slope"),each=2),c("5% change","10% change"))
 
-tab = CT_tabulate(Blist, targlev=0.7, subset = c(1,2,3,5))
+tab = CT_tabulate(Blist, RT=0.7, subset = c(1,2,3,5))
 tab = cbind(Management_procedure = MPdesc,tab )
 
 makeCTtab = function(tab){
@@ -469,8 +471,127 @@ Tailored tests are identical to conceptual tests but they are based on ecosystem
 
 ***
 
-# Recent presentations
+# Using Climate Test
 
+## Overview
+
+There are four distinct steps to conducting a Climate Test for any given case study:
+
+(1) Prepare operating models to have no climate change impacts
+(2) Tune candidate management procedures so they have identical outcomes given no climate impacts
+(3) Test the MPs over increasingly stringent climate impacts
+(4) Summarize results
+
+These steps are connected:
+
+<img src="img/steps.png" width = 800>
+
+Step 1. Since the Climate Test manipulates future productivity and catchability dynamics to represent possible climate impacts, any existing changes must first be removed. There are for example, cases where operating models in a reference grid include systematic changes in recruitment. It is possible that these are more extreme than the various climate impacts simulated in the climate tests which would lead to outcomes that are more optimistic in the tests and hence invalidate the underlying concept of stress testing MPs until they cross a robustness threshold. In this step the historical fishery and stock is also reconstructed including the calculation of various refernece points. This step only has to be conducted once saving computation due to historical reconstruction in all future climate test calculations such as MP tuning. 
+
+Step 2. Once operating models have had climate impacts removed the various candidate MPs must be tuned to obtain identical future outcomes. The default is to tune them such that they have the same spawning stock biomass (SSB) in projection year 30. They must be tuned in this way to ensure that reductions in SSB due to climate tests can be meaningfully compared among MPs. The tuning process uses the MSEtool function tune_MP(). This is a newton search for a tuning parameter that minimizes the difference between current (last historical year, e.g., 2019) SSB and SSB in projection year 30 (e.g., 2059). In this way all tuned MPs will provide a stable SSB outcome without climate impacts. 
+
+Step 3. In the third step various escalating climate impacts are imposed on the operating models. The tuned MPs are projected in these simulated conditions generating predicted yield and SSB outcomes (amongst many other outputs). 
+
+Step 4. The fourth step analyses these projected data to evaluate the climate robustness of the tuned MPs. For example, by calculating the level of climate impact before an MP crosses a specified Robustness Threshold. This could be 80% of current SSB in projection year 30. For example, if MPs 1 and 2 cross the robustness threshold given 4% and 8% increases in natural mortality rate over 30 years we might say MP 2 is twice as climate robust as MP 1. We could derive a language based on this robustness such as 'M4' and 'M8' robust.  
+
+The rest of this section goes into detail on how to carry out the Climate Test in code, for a real application. 
+
+
+## Installation 
+
+### R and RStudio
+
+Climate Test uses the R statistical environment and the openMSE libraries to manipulate operating models, management procedures and conduct closed-loop simulations. To start it is recommended that you install the latest versions of R and RStudio. 
+
+R can be downloaded from the [R Project for Statistical Computing webpage](https://cloud.r-project.org/).
+
+Currently the ClimateTest package is compatible with R version `r R.Version()$version.string`. 
+
+RStudio can be downloaded from the [Posit webpage](https://www.rstudio.com/).
+
+Currently the ClimateTest package is working in RStudio version 2025.05.1 Build 513. 
+
+The ClimateTest package has only been tested on a Windows x64 system.  
+
+
+
+### Installing R Packages
+
+Open RStudio and run the following lines of code at the R command prompt: 
+
+```{r Installation, eval=F,echo=T}
+install.packages("remotes")
+remotes::install_github('blue-matter/ClimateTest')
+```
+
+To test that installation worked correctly run the following line of code to produce a multi-panel summary of an example Exploratory Climate Test: 
+
+```{r Installation_check, eval=T,echo=T, fig.width = 6, fig.height=3.3}
+library(ClimateTest)
+CT_4_summary(ClimateTest::data, tests = "M", RT = 0.6, horizon = 30)
+```
+
+
+## Example Exploratory Test Using Operating Models and MPs in the ClimateTest Package
+
+### Prerequisites 
+
+To start using ClimateTest functions you need to load up the library and initialize a cluster on your computer for parallel processing. Parallel proessing is important because ClimateTest is very computationally demanding, involving numerous simulated projections of stock dynamics in the tuning of management procedures and the testing of climate robustness. 
+
+```{r Prerequisites, eval=F,echo=T}
+library('ClimateTest')        # ClimateTest functions and demo objects
+packageVersion('ClimateTest') # Check ClimateTest version 
+setup()                       # Set up parallel processing
+```
+
+### Examine Demonstration Operating Models and Management Procedures
+
+The ClimateTest R package comes with small (few simulations) operating models and fast (empirical) management procedures that are ideal for demonstrating the various steps of the Climate Test approach. 
+
+You can list these objects using the objs() function:
+
+```{r Objects, eval=T,echo=T}
+objs('MP')                   # Generic management procedures
+objs('OM')                   # Demo operating models
+```
+
+Here we can see two example operating models based on recent stock assessments of Bigeye Tuna (BET) and Blue Shark (BSH) in the North Atlantic Ocean. 
+
+There are two operating models for each species, the first is the base model derived directly from the recent Stock Synthesis 3 assessment for those stocks. The second (e.g. BET_2, BSH_2) is identical but has a lower level of resilience (Beverton Holt stock-recruitment steepness value is lower). 
+
+The example management procedures are empirical (i.e. do not include models that estimate stock and fishery dynamics) and aim for a constant harvest rate (Index-ratio, 'Ir', a constant ratio of TAC to relative abundance index level) or a target index level (Index-target, 'It', a specified level of a relative abundance index). 
+
+To learn more about the management procedures and operating models you can call up the in-line R help:
+
+```{r MP_help, eval=T,echo=T}
+?Ir
+?BET_1
+```
+
+### Step 1, Prepare Operating Models
+
+### Step 2, Tune MPs
+
+### Step 3, Conduct Climate Tests
+
+### Step 4, Summarize Results
+
+
+## Example Exploratory Test For North Atlantic Swordfish
+
+### Step 1, Prepare Operating Models
+
+### Step 2, Tune MPs
+
+### Step 3, Conduct Climate Tests
+
+### Step 4, Summarize Results
+
+
+
+***
+
+# Recent Presentations
 
 [Developing the Climate Test: Robustness Trials for climate-ready management procedures. 2024 Ecosystems working group (online). SCRS/P/2024/104](papers/SCRS_P_2024_104 Carruthers Climate Test.pptx)
 
