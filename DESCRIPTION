@@ -1,7 +1,7 @@
 Package: ClimateTest
 Type: Package
 Title: Rating the Climate Readiness of Fishery Management Procedures
-Version: 0.3.8
+Version: 0.3.11
 Authors@R: c(
     person(
       "Tom", "Carruthers",

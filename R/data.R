@@ -40,3 +40,13 @@
 #' @examples
 #' myMSE = runMSE(BSH_2)
 "BSH_2"
+
+
+#' Example Climate Test Data object
+#'
+#' The output of the function CT_3_test()
+#'
+#' @format A list two positions long, the first is the hierarchical list of MSE objects (openMSE class 'MSE') test x increment, the second is a matrix of the levels of each test.
+#' @examples
+#' CT_4_summary(CT_data)
+"CT_data"

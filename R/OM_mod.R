@@ -29,7 +29,7 @@ get_dim = function(OMv){
     proyears = OMv@Misc$MOM@proyears
     maxage = OMv@Misc$MOM@Stocks[[1]]@maxage
   }
-  c(nsim = nsim, nyears = nyears, proyears = proyears, maxage = maxage)
+  data.frame(nsim = nsim, nyears = nyears, proyears = proyears, maxage = maxage)
 }
 
 # instantaneous natural mortality rate
@@ -125,7 +125,7 @@ do_all = function(Hist){
 
   if(class(Hist) == 'Hist'){
     incmat = array(1,c(Hist@OM@nsim,1))
-    Hist1 = doC(1,incmat,list(Hist))
+    Hist1 = doC(1,incmat,val_list = list(Hist))
     Hist2 = doS(1,incmat,list(Hist1))
     Hist3 = doM(1,incmat,list(Hist2))
     Hist4 = doK(1,incmat,list(Hist3))

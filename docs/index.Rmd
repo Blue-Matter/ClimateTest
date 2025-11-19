@@ -118,7 +118,7 @@ MPdesc = paste(rep(c("Index target","Index ratio","Index slope"),each=2),c("5% c
 tab = CT_tabulate(Blist, RT=0.7, subset = c(1,2,3,5))
 tab = cbind(Management_procedure = MPdesc,tab )
 
-makeCTtab = function(tab){
+makeCTtab2 = function(tab){
    labs = colnames(tab)[2:ncol(tab)]
    sketch = htmltools::withTags(table(
         class = 'display',
@@ -194,6 +194,8 @@ getprog<-function(page){
   kable(tab,"simple")#,col.names=rep("",2)) 
 }
  
+horizon = 30
+CT_data = ClimateTest::CT_data
 
 ```
 
@@ -332,7 +334,7 @@ These marginal climate tests can be used to rate MPs according to the level of c
 
 
 ```{r CT_Tab, eval=T, results='asis'}
-makeCTtab(tab)
+makeCTtab2(tab)
 
 ```
 
@@ -528,7 +530,7 @@ To test that installation worked correctly run the following line of code to pro
 
 ```{r Installation_check, eval=T,echo=T, fig.width = 6, fig.height=3.3}
 library(ClimateTest)
-CT_4_summary(ClimateTest::data, tests = "M", RT = 0.6, horizon = 30)
+CT_4_summary(CT_data, tests = "M", RT = 0.6, horizon = 30)
 ```
 
 
@@ -563,21 +565,81 @@ The example management procedures are empirical (i.e. do not include models that
 
 To learn more about the management procedures and operating models you can call up the in-line R help:
 
-```{r MP_help, eval=T,echo=T}
-?Ir
-?BET_1
+```{r MP_help, eval=F,echo=T}
+?Ir        # Help documentatation for the Index-ratio empirical MP included in the ClimateTest package
+?BET_1     # Help documentatation for the N. Atl. Bigeye operating model included in the ClimateTest package
 ```
 
 ### Step 1, Prepare Operating Models
 
+A user defined list of operating models (openMSE class 'OM' or 'MOM') are standardized to have no climate impacts, returning the historical simluations spooled-up for projections.
+
+```{r Step_1_prep_Exp, eval=F,echo=T}
+OM_list = list(BET_1, BET_2)       # A list of operating models
+Hist_list = CT_1_prep(OM_list)     # Same OMs but without climate impacts and included historical reconstruction
+```
+
 ### Step 2, Tune MPs
+
+The user identifies (by name) management procedures (openMSE class 'MP') that are to be tuned to have the same projected outcome:
+
+```{r Step_2_tune_Exp, eval=F,echo=T}
+Ir1 = Ir2 = ClimateTest::Ir  # Generic Index ratio MP from Climate Test package
+formals(Ir2)$maxchng = 0.15  # TAC updates for Ir2 can now vary by 15% (default is 10%)
+It = ClimateTest::It         # Generic Index target MP from Climate Test package
+
+# Tuning options
+horizon = 30                 # Tuned to be same as current in 30 projected years
+
+# Tuning: defaults to MP parameter 'tune' over range 1/3x to 3x the default MP argument value
+MPs_tuned = CT_2_tune(Hist_list,
+                  MPs = c("Ir1","Ir2","It"), # Names of MPs to be tuned and tested
+                  type = "SSB",              # Spawning stock biomass tuning
+                  horizon)                   # SSB is same as current in 30 years
+```
+
 
 ### Step 3, Conduct Climate Tests
 
+The tuned MPs are now projected for incrementally increasing climate tests.  
+
+```{r Step_3_test_Exp, eval=F,echo=T}
+tests = c(S = 200,           # Up to 200% increase in catchability over the specified horizon
+          M = 25,            # Up to 25% increases in natural mortality over the specified horizon
+          R = 50,            # Up to 50% decreases in recruitment strength over the specified horizon
+          K = 75,            # Up to 75% decreases in somatic growth over the specified horizon
+          C = 75)            # Up to 75% decrease in condition factor (W / L^b) over the specified horizon
+
+ninc = 8                     # Number of increments for each test (to interpolate over)
+
+CT_data = CT_3_test(Hist_list,  # From Step 1
+                 MPs_tuned,  # From Step 2
+                 ninc, horizon, tests) # Over 8 increments for 30 projected years
+```
+
+
 ### Step 4, Summarize Results
+
+The results data arising from the test can be plotted and presented in various ways:
+
+```{r Step_4_sum_Exp, eval=T,echo=T,fig.width = 6, fig.height=8}
+# Raw results
+results = CT_metrics(CT_data, horizon) # Calculate SSB and yield loss metrics
+results$SSB_relative                # SSB loss metrics across tests and MPs
+
+# Robustness metrics
+RT = 0.85                # Robustness threshold, when SSB drops below this fraction of starting SSB
+tab = CT_tabulate(results$SSB_relative, RT)          # Calculate the test level where RT is crossed
+dt = makeCTtab(tab)                                  # HTML table
+dt
+CT_proj(CT_data, horizon, "M", RT = RT)              # Explanatory figure
+CT_4_summary(CT_data, RT = RT, horizon = horizon)    # Summary figure
+```
 
 
 ## Example Exploratory Test For North Atlantic Swordfish
+
+< coming soon ! >
 
 ### Step 1, Prepare Operating Models
 

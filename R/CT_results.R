@@ -47,7 +47,7 @@ makeCTtab = function(tab){
   nbk <- 1000
   clrs <- rainbow(nbk + 1, start=0.05,end=0.21)
   for(j in 1:ncol(tab)){
-    brks <- seq(0,max(tab[,j]),length.out=nbk)
+    brks <- seq(0,max(tab[,j],na.rm=T),length.out=nbk)
     dt <- formatStyle(dt, columns = j, backgroundColor = DT::styleInterval(brks, clrs))# ,'text-align' = 'center')
   }
 
