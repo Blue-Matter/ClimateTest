@@ -100,7 +100,7 @@ doK_int = function(inc,OMv){
   t0arr = aperm(array(t0,c(dm$nsim,dm$proyears,dm$maxage+1)),c(1,3,2))
 
   agearray = aperm(array((0:dm$maxage),c(dm$maxage+1,dm$nsim, dm$proyears)),c(2,1,3))
-  pro_len_age = Linfarr*(1-exp(-Karr*(agearray+t0arr)))
+  pro_len_age = Linfarr*(1-exp(-Karr*(agearray-t0arr)))
   yind = dm$nyears+(1:dm$proyears)
   OMv@SampPars$Stock$Len_age[,,yind] = pro_len_age
 
@@ -206,7 +206,7 @@ do_all = function(Hist){
     Hist1 = doC_MOM(1,incmat,list(Hist))
     Hist2 = doS_MOM(1,incmat,list(Hist1))
     Hist3 = doM_MOM(1,incmat,list(Hist2))
-    Hist4 = doK_MOM(1,incmat,val_list = list(Hist3))
+    Hist4 = doK_MOM(1,incmat,list(Hist3))
     Hist5 = doR_MOM(1,incmat,list(Hist4))
   }
   Hist5
