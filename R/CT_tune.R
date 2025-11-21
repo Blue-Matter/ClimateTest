@@ -1,9 +1,13 @@
 
 # Internal function for evaluating the final tuning of the MP
-eval_tune = function (MPobj, Hist_list, minfunc){
+eval_tune = function (MPobj, Hist_list, minfunc,parallel =T){
   MPtest = MPobj
-  sfExport("MPtest")
-  MSE_list = snowfall::sfLapply(Hist_list, function(X) Project(X, MPs = "MPtest"))
+  if(parallel){
+    sfExport("MPtest")
+    MSE_list = snowfall::sfLapply(Hist_list, function(X) Project(X, MPs = "MPtest", silent=T))
+  }else{
+    MSE_list = lapply(Hist_list, function(X) Project(X, MPs = "MPtest",silent=T))
+  }
   minfunc(MSE_list)
 }
 
@@ -21,7 +25,12 @@ eval_tune = function (MPobj, Hist_list, minfunc){
 #' @export
 CT_1_prep = function(OM_list){
   Hist_list = sfLapply(OM_list, Simulate)
-  lapply(Hist_list,do_all)
+  #if(any("multiHist" %in% class(Hist_list[[1]]))){
+   # for(i in 1:length(Hist_list)){
+    #  for(y in 1:length(Hist_list[[i]]){
+     #   Hist_list[[i]][[y]]$`Fleet 1`@Misc$MOM@cpars$control
+  #}
+  lapply(Hist_list, do_all)
 }
 
 
@@ -37,16 +46,17 @@ CT_1_prep = function(OM_list){
 #' @param MP_par_intervals A list (as long as MPs) of vectors, each vector 2 positions long. Optional. These are the lower and upper bounds of the search for the tuning parameter. The algorithm defaults to 1/3 - 3 x the default tuning parameter in each MP.
 #' @param near_enough Positive real number. Defaults to 1E-4. A measure of whether the tuning function got close enough to the target (e.g. stable SSB after 30 years). Expressed in units of the ratio of SSB(horizon) / SSB(current).
 #' @param tol Positive real number. the tolerance for convergence of Newton search (optimize). Converged when, between iterations, he tuning parameter changes less than this value.
+#' @param parallel Boolean. Should the tuning conduct MSE calculations in parallel (across operating models)
 #' @return A list of tuned MP functions renamed x_CT.
 #' @examples
-#' OM_list = list(BET_1,BET_2)                     # Create a list of operating models of class 'OM'
-#' Hist_list = CT_1_prep(OM_list)                  # Step 1 prep operating models
+#' OM_list = list(BET_1,BET_2)                      # Create a list of operating models of class 'OM'
+#' Hist_list = CT_1_prep(OM_list)                   # Step 1 prep operating models
 #' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))   # Step 2 tune management procedures
 #' @author T. Carruthers
 #' @export
-CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, MP_par_intervals = NA ,near_enough = 1E-4, tol = 0.005 ){
+CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, MP_par_intervals = NA ,near_enough = 1E-4, tol = 0.005, parallel = T){
 
-  sfExport(list = MPs)
+  if(sfIsRunning())sfExport(list = MPs)
 
   # Tuning MPs
   nMP = length(MPs)
@@ -75,7 +85,9 @@ CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = N
 
   for(mp in 1:nMP){
     cat(paste0("--- Tuning MP ",mp,"/",nMP,": ",MPs[mp]," ---------------- \n"))
-    tuned_MP_list[[mp]] = tune_MP(Hist_list, MP = MPs[mp], MP_parname = MP_par_nams[mp], interval = MP_par_intervals[[mp]], minfunc, tol=tol, parallel=T)
+    parallel = F
+    if(length(Hist_list)>1)parallel=T
+    tuned_MP_list[[mp]] = CT_tune_MP(Hist_list, MP = MPs[mp], MP_parname = MP_par_nams[mp], interval = MP_par_intervals[[mp]], minfunc, tol=tol, parallel=parallel)
   }
   names(tuned_MP_list) = MPnames
 
@@ -83,7 +95,7 @@ CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = N
   objs = rep(NA,nMP)
   for(mp in 1:nMP){
     par = formals(tuned_MP_list[[mp]])[MP_par_nams[mp]]
-    objs[mp] <- eval_tune(tuned_MP_list[[mp]], Hist_list, minfunc)
+    objs[mp] <- eval_tune(tuned_MP_list[[mp]], Hist_list, minfunc, parallel = parallel)
   }
 
   if(any(objs>near_enough)){
@@ -97,3 +109,30 @@ CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = N
   tuned_MP_list
 }
 
+CT_tune_MP = function (Hist_list, MP, MP_parname, interval, minfunc, tol = 0.01,
+                     parallel = F)
+{
+  opt = optimize(CT_tune_int, interval = interval, MP_parname = MP_parname,
+                 MP = MP, Hist_list = Hist_list, minfunc = minfunc, tol = tol,
+                 parallel = parallel)
+  MPout = get(MP)
+  formals(MPout)[MP_parname] = opt$minimum
+  class(MPout) = "MP"
+  return(MPout)
+}
+
+CT_tune_int = function (par, MP_parname, MP, Hist_list, minfunc, parallel)
+{
+  assign("MPtest", get(MP))
+  formals(MPtest)[[MP_parname]] = par
+  cat(paste0(MP_parname, " = ", round(par, 6), " \n"))
+  class(MPtest) = "MP"
+  if (!parallel) {
+    MSE_list = lapply(Hist_list, function(X) Project(X, MPs = "MPtest", silent=TRUE))
+  }
+  else {
+    sfExport("MPtest")
+    MSE_list = snowfall::sfLapply(Hist_list, function(X) Project(X, MPs = "MPtest"))
+  }
+  minfunc(MSE_list)
+}

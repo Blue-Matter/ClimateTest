@@ -241,7 +241,7 @@ Changing climatic conditions have the potential to substantially alter the abund
 
 Climate processes (e.g., thermal regime, concentration of greenhouse gasses) are linked to oceanographic conditions (e.g., ocean temperature, ocean mixing, stratification, pH & salinity)(Figure 1, Table 1). A large number of mechanisms have been proposed for how individual fish stocks may be impacted by those changing oceanographic conditions (Table 2). The mechanistic linkages are numerous and can related to changing ecological processes (e.g., primary productivity, community dynamics) and the location and amount of suitable habitat. The large number of mechanisms ultimately impact a relatively concise list of individual stock dynamics relating to species distribution, survival of various life stages, condition factor, fecundity and somatic growth (Walther et al., 2002; Doney et al., 2012; Free et al., 2019). 
 
-<img src="img/schematic.jpg" width = 500>
+<img src="img/schematic.jpg" width = 550>
 
 <span style="color: #7690ba;">Figure 1. A simplified diagram of linkages among climate processes, oceanographic conditions and individual species dynamics. The size of each box is intended to represent the relative number of processes / mechanisms that have been proposed in the literature, highlighting the relatively small number of hypothesized impacts on individual species.</span>   
 
@@ -291,7 +291,7 @@ The Climate Test is proposed as an extension to management strategy evaluation (
 
 The climate test compares when management options 'break' due to climate impacts and hence requires a definition of that break point, a 'Robustness threshold'. The Robustness threshold has three parts: (1) an unacceptable level of impact, (2) a quantity that is impacted and (3) a time horizon. 
 
-In Figure 2 a climate test is presented for two management procedures for Atlantic Blue Shark (Carruthers XXX). In this case the robustness threshold is a 30% decline in spawning stock biomass (SSB) over a 30 year time horizon. The two management procedures were climate tested for declines in somatic growth (K). The top row shows how future spawning biomass is impacted by increasingly large impacts on somatic growth (phrased as annual percentage declines in K). 
+In Figure 2 a climate test is presented for two management procedures for Atlantic Blue Shark (Carruthers 2024a;b). In this case the robustness threshold is a 30% decline in spawning stock biomass (SSB) over a 30 year time horizon. The two management procedures were climate tested for declines in somatic growth (K). The top row shows how future spawning biomass is impacted by increasingly large impacts on somatic growth (phrased as annual percentage declines in K). 
 
 The first management procedure (top row) crosses the robustness threshold after 30 years given a decline in growth of 8%. The second management procedure (bottom row) is much more robust and it takes an 18% decline in somatic growth before projected biomass crosses the performance threshold. 
 
@@ -598,6 +598,19 @@ MPs_tuned = CT_2_tune(Hist_list,
                   horizon)                   # SSB is same as current in 30 years
 ```
 
+The R console should look something like this:
+
+
+<img src="img/Tuning_screenshot.png" width = 600>
+
+
+As the optimizer runs, it reports both the value of the tuning parameter (in this case 'tune') and the ratio of SSB in horizon years: SSB current (the 'Target ratio'). When this ratio is close to 1 and the tuning parameter is changing less than the specified tolerance, the optimizer stops and moves to the next MP. 
+
+If all MPs are tuned such that they are 'near_enough' to the Target ratio of 1 (SSB_horizon ~= SSB_current) the tuning will end with output confirming that all MPs were tuned successfully: 
+
+<img src="img/Tuning_screenshot2.png" width = 600>
+
+
 
 ### Step 3, Conduct Climate Tests
 
@@ -610,12 +623,21 @@ tests = c(S = 200,           # Up to 200% increase in catchability over the spec
           K = 75,            # Up to 75% decreases in somatic growth over the specified horizon
           C = 75)            # Up to 75% decrease in condition factor (W / L^b) over the specified horizon
 
-ninc = 8                     # Number of increments for each test (to interpolate over)
+nlev = 8                     # Number of levels for each test (to interpolate over)
 
 CT_data = CT_3_test(Hist_list,  # From Step 1
                  MPs_tuned,  # From Step 2
-                 ninc, horizon, tests) # Over 8 increments for 30 projected years
+                 nlev, horizon, tests) # Over 8 increments for 30 projected years
 ```
+
+Running the climate test is effectively running a very large number of projections. Lets say you have 5 tests and 8 levels of each test for 2 operating models, 3 MPs over 100 simulations and 35 projection years. That is 5 x 8 x 2 x 3 x 100 x 35 = 840,000 simulation-years of calculations. Some model-based MPs take time to run for each of these simulation-year combinations. You can first run a small (low simulation number, single OM) climate test to get an idea of the running time. 
+
+The test is run in parallel across the levels of each marginal test (8 levels by default) so providing you have enough threads that may not impact running time substantially. 
+
+Once the climate test has run you should see something like this output:
+
+<img src="img/Test_screenshot.png" width = 600>
+
 
 
 ### Step 4, Summarize Results

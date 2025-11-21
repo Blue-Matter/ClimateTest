@@ -8,7 +8,7 @@ CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
   MSEs = list()
 
   # for each OM, run the nval scenarios
-  for(i in 1:nOM) MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs){Project(X,MPs)},MPs=MPs)
+  for(i in 1:nOM) MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs){Project(X,MPs,silent=T)},MPs=MPs)
 
   # join (across nOM) the MSEs into one per nval scenario
   if(nOM == 1) MSEjoin = MSEs[[1]]
@@ -26,17 +26,15 @@ CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
 }
 
 
-
-
 #' Climate Test Step 3: Run the climate tests of tuned management procedures.
 #'
 #' Prior to tuning MPs, it is necessary to take the set of operating models and remove any existing climate impacts. Returns a list of the same length of historically reconstructed operating models of class Hist
 #'
 #' @param Hist_list A list of objects of class Hist produced in the first step by CT_1_prep()
 #' @param MPs_tuned A list of tuned MP functions produced in the second step by CT_2_tune()
-#' @param ninc Positive integer, the number of increments of each marginal climate test from which to linearly interpolate robustness
+#' @param nlev Positive integer, the number of levels of each marginal climate test from which to linearly interpolate robustness
 #' @param horizon Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels. Should be the same as that used in CT_2_tune()
-#' @param tests Named vector of positive real numbers, which tests, and the % extent of each climate test. Default to c(M = 25, R = 50, K = 75, S = 200, C = 75) ie a 25% increase in natural mortality rate, a 50% decrease in recruitment strength, a 75% reduction in somatic growth, a 200% increase in spatial catchability, a 75% reduction in condition factor).
+#' @param tests Named vector of positive real numbers, which tests, and the % extent of each climate test. Default to c(M = 25, R = 50, K = 75, S = 200, C = 75) ie a 25 percent increase in natural mortality rate, a 50 percent decrease in recruitment strength, a 75 percent reduction in somatic growth, a 200 percent increase in spatial catchability, a 75 percent reduction in condition factor).
 #' @return A two position list that is (1) a hierarchical list of MSEs (tests then levels of tests) and  (2) a matrix with the the levels of the tests (e.g. the ninc levels of natural mortalty rate from zero to the maximum value)
 #' @examples
 #' OM_list = list(BET_1,BET_2)                     # Create a list of operating models of class 'OM'
@@ -45,7 +43,7 @@ CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
 #' data = CT_3_test(Hist_list, MPs_tuned)          # Step 3 run the tuned MPs under a set of increasing marginal climate tests
 #' @author T. Carruthers
 #' @export
-CT_3_test = function(Hist_list, MPs_tuned, ninc = 8, horizon = 30,
+CT_3_test = function(Hist_list, MPs_tuned, nlev = 8, horizon = 30,
                  tests = c(M = 25, R = 50, K = 75, S = 200, C = 75)){
 
   ntests = length(tests)
@@ -57,11 +55,11 @@ CT_3_test = function(Hist_list, MPs_tuned, ninc = 8, horizon = 30,
 
   Bmetric = Ymetric = list()
   MSEs = list()
-  levlist = array(NA,c(ntests,ninc))
+  levlist = array(NA,c(ntests,nlev))
 
   for(tt in 1:ntests){
     test = names(tests)[tt]
-    percs = seq(0,tests[tt],length.out = ninc)
+    percs = seq(0,tests[tt],length.out = nlev)
     levlist[tt, ] = percs
     MSEs[[tt]] = CT_perf(Hist_list, MPs, test, percs, horizon, parallel = T) # a list of MSE objects ninc long
     cat(paste0(test, " marginal climate test completed (",tt,"/",ntests,") \n"))

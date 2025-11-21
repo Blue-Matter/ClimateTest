@@ -12,7 +12,8 @@ CT_2_tune(
   MP_par_nams = NA,
   MP_par_intervals = NA,
   near_enough = 1e-04,
-  tol = 0.005
+  tol = 0.005,
+  parallel = T
 )
 }
 \arguments{
@@ -30,6 +31,8 @@ CT_2_tune(
 
 \item{tol}{Positive real number. the tolerance for convergence of Newton search (optimize). Converged when, between iterations, he tuning parameter changes less than this value.}
 
+\item{parallel}{Boolean. Should the tuning conduct MSE calculations in parallel (across operating models)}
+
 \item{MP_par_names}{A vector of character strings as long as MPs - the names of the tuning parameters corresponding to each MP. By default the algorithm assumes the tuning parameters are an MP argument named 'tune'.}
 }
 \value{
@@ -39,8 +42,8 @@ A list of tuned MP functions renamed x_CT.
 A function that tunes a set of MPs to achieve current biomass levels in a specified number of years.
 }
 \examples{
-OM_list = list(BET_1,BET_2)                     # Create a list of operating models of class 'OM'
-Hist_list = CT_1_prep(OM_list)                  # Step 1 prep operating models
+OM_list = list(BET_1,BET_2)                      # Create a list of operating models of class 'OM'
+Hist_list = CT_1_prep(OM_list)                   # Step 1 prep operating models
 MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))   # Step 2 tune management procedures
 }
 \author{

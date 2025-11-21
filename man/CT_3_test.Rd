@@ -7,7 +7,7 @@
 CT_3_test(
   Hist_list,
   MPs_tuned,
-  ninc = 8,
+  nlev = 8,
   horizon = 30,
   tests = c(M = 25, R = 50, K = 75, S = 200, C = 75)
 )
@@ -17,11 +17,11 @@ CT_3_test(
 
 \item{MPs_tuned}{A list of tuned MP functions produced in the second step by CT_2_tune()}
 
-\item{ninc}{Positive integer, the number of increments of each marginal climate test from which to linearly interpolate robustness}
+\item{nlev}{Positive integer, the number of levels of each marginal climate test from which to linearly interpolate robustness}
 
 \item{horizon}{Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels. Should be the same as that used in CT_2_tune()}
 
-\item{tests}{Named vector of positive real numbers, which tests, and the % extent of each climate test. Default to c(M = 25, R = 50, K = 75, S = 200, C = 75) ie a 25% increase in natural mortality rate, a 50% decrease in recruitment strength, a 75% reduction in somatic growth, a 200% increase in spatial catchability, a 75% reduction in condition factor).}
+\item{tests}{Named vector of positive real numbers, which tests, and the % extent of each climate test. Default to c(M = 25, R = 50, K = 75, S = 200, C = 75) ie a 25 percent increase in natural mortality rate, a 50 percent decrease in recruitment strength, a 75 percent reduction in somatic growth, a 200 percent increase in spatial catchability, a 75 percent reduction in condition factor).}
 }
 \value{
 A two position list that is (1) a hierarchical list of MSEs (tests then levels of tests) and  (2) a matrix with the the levels of the tests (e.g. the ninc levels of natural mortalty rate from zero to the maximum value)
