@@ -25,11 +25,15 @@ eval_tune = function (MPobj, Hist_list, minfunc,parallel =T){
 #' @export
 CT_1_prep = function(OM_list){
   Hist_list = sfLapply(OM_list, Simulate)
-  #if(any("multiHist" %in% class(Hist_list[[1]]))){
-   # for(i in 1:length(Hist_list)){
-    #  for(y in 1:length(Hist_list[[i]]){
-     #   Hist_list[[i]][[y]]$`Fleet 1`@Misc$MOM@cpars$control
-  #}
+  if(any("multiHist" %in% class(Hist_list[[1]]))){
+    for(om in 1:length(Hist_list)){
+      for(ss in 1:length(Hist_list[[om]])){
+        for(ff in 1:length(Hist_list[[om]][[ss]])){
+           Hist_list[[om]][[ss]][[ff]]@Misc$MOM@cpars$control$TAC = "removals"
+        }
+      }
+    }
+  }
   lapply(Hist_list, do_all)
 }
 
@@ -85,8 +89,8 @@ CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = N
 
   for(mp in 1:nMP){
     cat(paste0("--- Tuning MP ",mp,"/",nMP,": ",MPs[mp]," ---------------- \n"))
-    parallel = F
-    if(length(Hist_list)>1)parallel=T
+    #parallel = F
+    #if(length(Hist_list)>1)parallel=T
     tuned_MP_list[[mp]] = CT_tune_MP(Hist_list, MP = MPs[mp], MP_parname = MP_par_nams[mp], interval = MP_par_intervals[[mp]], minfunc, tol=tol, parallel=parallel)
   }
   names(tuned_MP_list) = MPnames
@@ -132,7 +136,7 @@ CT_tune_int = function (par, MP_parname, MP, Hist_list, minfunc, parallel)
   }
   else {
     sfExport("MPtest")
-    MSE_list = snowfall::sfLapply(Hist_list, function(X) Project(X, MPs = "MPtest"))
+    MSE_list = snowfall::sfLapply(Hist_list, function(X)Project(X, MPs = "MPtest", silent=TRUE))
   }
   minfunc(MSE_list)
 }

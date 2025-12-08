@@ -54,21 +54,34 @@ makeCTtab = function(tab){
   dt
 }
 
+get_bio=function(X, mm, rng){
+  if(any('MSE' %in%class(X))){
+    out = c(mean(X@SSB_hist[,X@nyears]), apply(X@SSB[,mm,rng],2,mean))
+  }else{
+    Femind = match("Female",names(X@multiHist))
+    nyears = dim(X@multiHist[[Femind]][[1]]@TSdata$SBiomass)[2]
+    SSBhist = mean(apply(X@multiHist[[Femind]][[1]]@TSdata$SBiomass[,nyears,],1,sum))
+    SSB = apply(X@SSB[,Femind,mm,rng],2,mean)
+    out = c(SSBhist,SSB)
+  }
+  out
+}
 
-CT_proj = function(data, horizon = 30, test = NA, MPs = NA, RT=0.9,
+
+CT_proj = function(CT_data, horizon = 30, test = NA, MPs = NA, RT=0.9,
                    rnd=1, denom = 1E3, unit = "kt", fracextra = 0.3,
                    CurYr = 2019, MPlab_adj = 1.2){
 
-  tests = rownames(data$levlist)
+  tests = rownames(CT_data$levlist)
   if(is.na(test[1]))test = tests[1]
 
-  allMPs = data$MSEs[[1]][[1]]@MPs
+  allMPs = unlist(CT_data$MSEs[[1]][[1]]@MPs)
   if(is.na(MPs[1]))MPs = allMPs
 
-  MSEs = data$MSEs[[match(test,tests)]]
+  MSEs = CT_data$MSEs[[match(test,tests)]]
   nM = length(MSEs)
 
-  Blist = CT_metrics(data)$SSB_relative
+  Blist = CT_metrics(CT_data)$SSB_relative
   Blisty = Blist[[match(test,tests)]]
   levs = round(as.numeric(colnames(Blisty)),rnd)
 
@@ -80,7 +93,7 @@ CT_proj = function(data, horizon = 30, test = NA, MPs = NA, RT=0.9,
 
   for(mm in MPnos){
     cols = viridis(nM, begin=1, end=0)
-    Bio = sapply(MSEs,function(X,mm,rng)c(mean(X@SSB_hist[,X@nyears]),apply(X@SSB[,mm,rng],2,mean)),mm=mm,rng=1:horizon)
+    Bio = sapply(MSEs,get_bio,mm=mm,rng=1:horizon)
     Bio = Bio / denom
     CT_proj_plot(Bio,cols,levs, RT=RT, nextra=nextra, CurYr = CurYr, Horizon = horizon, nyplot = horizon, test)
     mtext(MPs[mm],3,adj=MPlab_adj,outer=F,line=0.5,font=2)
@@ -188,7 +201,7 @@ CT_approx = function(x,y,xout){
 #'
 #' Produces a figure showing the robustness of the various MPs with increasingly stringent climate tests
 #'
-#' @param data A hierarchical list produced in the third step by CT_3_test()
+#' @param CT_data A hierarchical list produced in the third step by CT_3_test()
 #' @param tests A named list of the tests to plot (e.g. c('M', 'K', 'S', 'R', 'C'). Optional, defaults to all tests.
 #' @param MPs A named list of the MPs to plot (e.g. c('Ir_CT', 'It_CT'). Optional, defaults to all MPs
 #' @param RT Positive real fraction. Robustness threshold - the fraction of the current SSB.  Used for interpolating to obtain the corresponding percentage level for each MP.
@@ -200,17 +213,17 @@ CT_approx = function(x,y,xout){
 #' OM_list = list(BET_1,BET_2)
 #' Hist_list = CT_1_prep(OM_list)
 #' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
-#' data = CT_3_test(Hist_list, MPs_tuned)
-#' CT_4_summary(data)
+#' CT_data = CT_3_test(Hist_list, MPs_tuned)
+#' CT_4_summary(CT_data)
 #' @author T. Carruthers
 #' @export
-CT_4_summary = function(data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digits = 1, grid=F){
+CT_4_summary = function(CT_data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digits = 1, grid=F){
 
-  allTests = rownames(data$levlist)
+  allTests = rownames(CT_data$levlist)
   if(is.na(tests[1]))tests = allTests
   nT = length(tests)
 
-  allMPs = data$MSEs[[1]][[1]]@MPs
+  allMPs = unlist(CT_data$MSEs[[1]][[1]]@MPs)
   if(is.na(MPs[1]))MPs = allMPs
   nMP = length(MPs)
 
@@ -224,7 +237,7 @@ CT_4_summary = function(data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, digi
 
   cols = rev(viridis(200, begin=1, end=0.1))
   par(mfrow = c(nrow,ncol),mai = c(0.55,0.4,0.18,0.01),omi=c(0.25,0.25,0.01,0.01))
-  Blist = CT_metrics(data, horizon=horizon , 5)$SSB_relative
+  Blist = CT_metrics(CT_data, horizon=horizon , 5)$SSB_relative
   yrng = range(unlist(Blist))
   yinc = (yrng[2]-yrng[1])/15
   for(tt in 1:nT){

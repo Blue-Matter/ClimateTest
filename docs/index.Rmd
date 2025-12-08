@@ -310,15 +310,14 @@ For any case study it is possible to create a set of marginal (one parameter at 
 <span style="color: #7690ba;">Table 3. Six exploratory climate tests identified in Carruthers 2024a </span>
 
 ```{r ExpTypes, eval=T}
-dat<-data.frame(c("Somatic Growth","Recruitment Strength","Natural Mortality","Condition Factor","Spatial distribution","Carrying Capacity"),
+dat<-data.frame(c("Somatic Growth","Recruitment Strength","Natural Mortality","Condition Factor","Spatial distribution"),
                 
-                 c("K","R","M","C","Q","S"),
+                 c("K","R","M","C","S"),
                  c("Declines in somatic growth may lead to fewer mature fecund individuals in the population, a higher fraction of fish caught per catch weight, and a lower rate of sustainable harvest",
                    "Declines in recruitment strength require fewer catches to maintain stock sizes",
                    "Declining natural survival (increasing M) reduces the number of cohorts in the population, and reduces the likelihood of reaching maturity",
                    "Declining condition factor reduces spawning biomass, increases the number of fish caught per catch weight and reduces the rate of sustainable harvest",
-                   "Spatial range contration towards fishing can increase catchability (fishing efficiency) leading to higher catch per effort",
-                   "Declines in carrying capacity reduce stock-wide productivity reducing sustainable catch levels")
+                   "Spatial range contration towards fishing can increase catchability (fishing efficiency) leading to higher catch per effort and hyperstability in relative abundance indices")
                   )
 
 kable(dat,"simple",col.names=c("Parameter","Code","Description")) 
@@ -533,8 +532,9 @@ library(ClimateTest)
 CT_4_summary(CT_data, tests = "M", RT = 0.6, horizon = 30)
 ```
 
+<br>
 
-## Example Exploratory Test Using Operating Models and MPs in the ClimateTest Package
+## Demonstration Using OM annd MPs of the ClimateTest Package
 
 ### Prerequisites 
 
@@ -659,35 +659,112 @@ CT_4_summary(CT_data, RT = RT, horizon = horizon)    # Summary figure
 ```
 
 
-## Example Exploratory Test For North Atlantic Swordfish
+## Exploratory Test For N. Atl. Swordfish
 
-< coming soon ! >
+In this example we use a single reference set operating model from the North Atlantic Swordfish MSE (MOM_005), strip it to a small number of simulations for demonstration purposes, and then Climate Test the adopted MP ('mostly constant catch', MCC11_b, Duprey 2024) and a competing candidate MP assuming approximately constant exploitation rate (CE_b, Hordyk 2024)
+
+### Prerequisites
+
+For this real-world application you will need to install the SWOMSE R package from github, and then load it and the ClimateTest package:
+
+```{r Install_SWO, eval=F,echo=T}
+
+install.packages('pak')                               # Install package management
+pak::pkg_install('https://github.com/ICCAT/nswo-mse') # Install SWOMSE R package from ICCAT repo
+
+library(SWOMSE)                                       # Load N. Atl. swordfish MSE library    
+library('ClimateTest')                                # ClimateTest functions and demo objects
+
+```
 
 ### Step 1, Prepare Operating Models
 
+Here we take one of the swordfish multi-operating model objects (MOM_005) and reduce it to just the first 8 simulations so that the code runs fast enough for demonstration purposes. After which, all climate impacts are removed and the historical simulation is spooled-up using CT_1_prep. 
+
+```{r Step_1_SWO, eval=F,echo=T}
+small_OM = SubCpars(MOM_005,1:8)
+OM_list = list(small_OM)
+Hist_list = CT_1_prep(OM_list) # Spool up with no climate effects
+```
+
 ### Step 2, Tune MPs
+
+In step 2 we tune two empirical MPs, CE_b and MCC11_b, the latter being the MP adopted for use in N. Atl. Swordfish management. The projection runs for something like 32 years so we are using a 25 year horizon. 
+
+```{r Step_2_SWO, eval=F,echo=T}
+horizon = 25
+MPs_tuned = CT_2_tune(Hist_list,
+                      MPs = c("CE_b","MCC11_b"),      # Names of MPs to be tuned and tested
+                      MP_par_nams = rep("tunepar",2), # tuning parameter names for each MP
+                      type = "SSB",                   # Spawning stock biomass tuning,
+                      horizon,                        # Returns a list of tuned MPs
+                      parallel=F)                     # No need to run in parallel (only 1 OM)
+```
 
 ### Step 3, Conduct Climate Tests
 
+The spooled-up operating models (Hist_list) and the tuned MPs (MPs_tuned) are then used in the Climate Test. This is run in parallel across the various levels of each type of test (e.g., 8 levels of natural moratlity rate increase (M) from 0 to 25% over 25 years). To make sure everthing needed is available to the cluster for parallel computation, we use the sfLibrary() function to export all SWOMSE functions and variables to the cluster: 
+
+```{r Step_3_SWO, eval=F,echo=T}
+
+setup()                      # Initialize cluster for parallel computation
+sfLibrary(SWOMSE)            # Send SWOMSE objects and functions to the cluster
+tests = c(C = 75,            # Up to 75% decrease in condition factor (W / L^b)
+          S = 200,           # Up to 200% increase in catchability
+          M = 25,            # Up to 25% increases in natural mortality
+          R = 50,            # Up to 50% decreases in recruitment strength
+          K = 75)            # Up to 75% decreases in somatic growth
+
+nlev = 8                     # Number of increments for each test (to interpolate over)
+
+CT_data = CT_3_test(Hist_list, MPs_tuned, nlev, horizon, tests)
+
+```
+
+
 ### Step 4, Summarize Results
 
+As before, the climate test outputs can be presented as tables or figures: 
 
+```{r Step_4_SWO, eval=F,echo=T}
+
+RT = 0.8
+
+results = CT_metrics(CT_data, horizon=horizon) # Calculate SSB and yield loss metrics
+results$SSB_relative                           # SSB loss metrics
+
+tab = CT_tabulate(results$SSB_relative, RT=RT) # Calculate the test level where RT is crossed
+makeCTtab(tab)                                 # HTML table
+
+CT_proj(CT_data, horizon, "M", RT=RT)          # Plot the projected SSB outcomes and test level
+
+CT_4_summary(CT_data, RT = RT, horizon = horizon) # Summary plot of all tests
+
+```
 
 ***
 
 # Recent Presentations
 
+<div class="hanging-indent">
+
 [Developing the Climate Test: Robustness Trials for climate-ready management procedures. 2024 Ecosystems working group (online). SCRS/P/2024/104](papers/SCRS_P_2024_104 Carruthers Climate Test.pptx)
 
 [Developing the Climate Test: Performance Metrics of Climate Robustness. 2024 species group meetings (Madrid / online). SCRS/P/2024/148](papers/SCRS_P_2024_148 Carruthers Climate Test Metrics.pptx)
+
+</div>
 
 ***
 
 # Climate Test Papers
 
+<div class="hanging-indent">
+
 [Carruthers, T.R.. 2024a. Developing the Climate Test: Robustness Trials for climate-ready management procedures. Col. Vol. Sci. Pap. ICCAT. 81(6): 1-26](https://www.iccat.int/Documents/CVSP/CV081_2024/n_6/CV08106104.pdf)
 
 [Carruthers, T.R., 2024b. Developing the Climate Test: Performance Metrics of Climate Robustness. Col. Vol. Sci. Pap. ICCAT. 81(2): 1-7](https://www.iccat.int/Documents/CVSP/CV081_2024/n_2/CV08102148.pdf)
+
+</div>
 
 ***
 
