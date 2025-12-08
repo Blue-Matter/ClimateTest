@@ -1,7 +1,7 @@
 
 
 
-#' Climate Test Metrics HTML summary.
+#' Climate Test Metrics summary.
 #'
 #' Produces a matrix of performance outcomes (percentage change of each test given robustness threshold) at the end of a specified time horizon for each test
 #'
@@ -42,6 +42,22 @@ CT_tabulate = function(Blist, RT = 0.9, subset = c(1,2,3,4,5)){
 }
 
 
+#' Climate Test Metrics HTML summary.
+#'
+#' Produces an HMTM table of performance outcomes (percentage change of each test given robustness threshold) at the end of a specified time horizon for each test
+#'
+#' @param tab A table of results produced by the function CT_tabulate()
+#' @return A table of values of tests at which the robustness threshold was crossed.
+#' @examples
+#' OM_list = list(BET_1,BET_2)
+#' Hist_list = CT_1_prep(OM_list)
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
+#' CT_data = CT_3_test(Hist_list, MPs_tuned)
+#' results = CT_metrics(CT_data)
+#' tab = CT_tabulate(results$SSB_relative)
+#' makeCTtab(tab)
+#' @author T. Carruthers
+#' @export
 makeCTtab = function(tab){
   labs = colnames(tab)[1:ncol(tab)]
   sketch = htmltools::withTags(table(
