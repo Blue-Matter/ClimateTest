@@ -19,7 +19,7 @@
 #' @param ... Additional arguments (unused)
 #'
 #' @return An object of class `Rec` with the `TAC` slot populated
-#'
+#' @export
 CE <- function(x, Data, Data_Lag=2, Interval=3, tunepar=1, mc=0.25,
                yrs=c(5,5), ...) {
   Rec <- new('Rec')
@@ -79,6 +79,24 @@ CE <- function(x, Data, Data_Lag=2, Interval=3, tunepar=1, mc=0.25,
   Rec
 }
 
+#' Constant Exploitation with Control Rule
+#'
+#' This MP aims to keep the exploitation rate at a constant level. The current relative
+#' exploitation rate is calculated as the mean of the catches from 2016:2023 divided
+#' by the mean Combined Index over this same period.
+#'
+#' @param x A position in the data object
+#' @param Data An object of class `Data`
+#' @param Data_Lag The number of years to lag the data
+#' @param Interval The TAC update interval
+#' @param tunepar Parameter used for tuning
+#' @param mc The maximum fractional change in the TAC among years. NA to ignore
+#' @param yrs numeric values length 2. The year index to calculate the historical mean catches and index,
+#' and the years to smooth the estimate of current exploitation rate
+#' @param ... Additional arguments (unused)
+#'
+#' @return An object of class `Rec` with the `TAC` slot populated
+#' @export
 CE2 <- function(x, Data, Data_Lag=2, Interval=3, tunepar=1, mc=0.25,
                yrs=c(5,5), ...) {
   Rec <- new('Rec')
@@ -197,7 +215,7 @@ class(CE_e) <- "MP"
 #' @param ... Additional arguments (unused)
 #'
 #' @return An object of class `Rec` with the `TAC` slot populated
-#'
+#' @export
 MCC9 <- function(x, Data, Data_Lag=2, Interval=3, tunepar=1, mc=NA, ...) {
   Rec <- new('Rec')
 
@@ -272,7 +290,23 @@ MCC9 <- function(x, Data, Data_Lag=2, Interval=3, tunepar=1, mc=NA, ...) {
   Rec
 }
 
-
+#' Constant Exploitation with Control Rule
+#'
+#' goal in this CMP would be to have the catch remain as constant as possible and only increase if the
+#' index rose substantially and only decrease if the index declined substantially. The base TAC (constant
+#' catch) would be 12,600 as this CC TAC that would allow PGK60 and LRP15 (ideally we could get this LRP
+#' down) to be achieved.
+#'
+#' @param x A position in the data object
+#' @param Data An object of class `Data`
+#' @param Data_Lag The number of years to lag the data
+#' @param Interval The TAC update interval
+#' @param tunepar Parameter used for tuning
+#' @param mc The maximum fractional change in the TAC among years. NA to ignore
+#' @param ... Additional arguments (unused)
+#'
+#' @return An object of class `Rec` with the `TAC` slot populated
+#' @export
 MCC11 <- function(x, Data, Data_Lag=2, Interval=3, tunepar=1, mc=NA, ...) {
   Rec <- new('Rec')
 

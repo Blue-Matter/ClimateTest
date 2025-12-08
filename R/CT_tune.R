@@ -60,7 +60,15 @@ CT_1_prep = function(OM_list){
 #' @export
 CT_2_tune = function(Hist_list, MPs, type = "SSB", horizon = 20, MP_par_nams = NA, MP_par_intervals = NA ,near_enough = 1E-4, tol = 0.005, parallel = T){
 
-  if(sfIsRunning())sfExport(list = MPs)
+  if(parallel){
+    if(sfIsRunning()){
+      sfLibrary('ClimateTest',character.only = TRUE, verbose=FALSE)
+      CTmps = avail('MP','ClimateTest')
+      if(sum(MPs%in%CTmps)!=length(MPs)){ # there is at least 1 MP that isn't in the Climate Test package
+        sfExport(list = MPs[!(MPs%in%CTmps)]) # export anything non ClimateTest
+      }
+    }
+  }
 
   # Tuning MPs
   nMP = length(MPs)

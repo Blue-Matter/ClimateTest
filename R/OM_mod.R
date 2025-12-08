@@ -218,7 +218,7 @@ OM_mod = function(Hist_list, test, percs, horizon){
   #MSE_list = lapply(OM_list,function(X)runMSE(X,Hist=T))
   ni = length(percs)
   out=list()
-  if(any(class(Hist_list[[1]]) == 'Hist')) nsim = Hist@OM@nsim
+  if(any(class(Hist_list[[1]]) == 'Hist')) nsim = Hist_list[[1]]@OM@nsim
   if(any(class(Hist_list[[1]]) == 'multiHist')) nsim = get_dim(Hist_list[[1]][[1]][[1]])$nsim
   for(i in 1:length(Hist_list)){
     MGT = rep(horizon, nsim) # floor(MSE_list[[i]]@OMPars$MGT)

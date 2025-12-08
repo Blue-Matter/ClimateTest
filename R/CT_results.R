@@ -1,6 +1,23 @@
 
 
 
+#' Climate Test Metrics HTML summary.
+#'
+#' Produces a matrix of performance outcomes (percentage change of each test given robustness threshold) at the end of a specified time horizon for each test
+#'
+#' @param Blist A list of biomass results output produced by CT_metrics.
+#' @param RT Fraction. The robustness threshold (fraction of SSB after horizong years).
+#' @param subset Vector of positive integers. The tests you wish to keep in the table.
+#' @return A table of values of tests at which the robustness threshold was crossed.
+#' @examples
+#' OM_list = list(BET_1,BET_2)
+#' Hist_list = CT_1_prep(OM_list)
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
+#' CT_data = CT_3_test(Hist_list, MPs_tuned)
+#' results = CT_metrics(CT_data)
+#' CT_tabulate(results$SSB_relative)
+#' @author T. Carruthers
+#' @export
 CT_tabulate = function(Blist, RT = 0.9, subset = c(1,2,3,4,5)){
 
   MPs = rownames(Blist[[1]])
@@ -68,6 +85,30 @@ get_bio=function(X, mm, rng){
 }
 
 
+#' Climate Test Metrics HTML summary.
+#'
+#' Produces a projection plot of climate test outcomes.
+#'
+#' @param CT_data The data object returned from the function CT_3_test.
+#' @param horizon Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels.
+#' @param test Character string. The name of the tests you wish to plot results for ("C","M","S","R","K"). Defaults to all tests.
+#' @param MPs Vector of character strings. The names of the MPs you wish to plot results for. Defaults to all MPs.
+#' @param RT Fraction. The robustness threshold (fraction of SSB after horizong years).
+#' @param rnd Positive integer. The number of decimal places to plot test results.
+#' @param denom Positive real number. A denominator for results (e.g. 1000 if you want to convert kg to tonnes)
+#' @param unit Character string for units of biomass or yield (e.g. 'kt').
+#' @param fracextra Positive real number. The amount of white space in which test levels are plotted.
+#' @param CurYr Positive integer. The current calendar year (last historical year), delineates historical and projected time periods.
+#' @param MPlab_adj Positive real number. Text adjustment for the plotting of results labels.
+#' @return A figure of projected climate test outcomes.
+#' @examples
+#' OM_list = list(BET_1,BET_2)
+#' Hist_list = CT_1_prep(OM_list)
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
+#' CT_data = CT_3_test(Hist_list, MPs_tuned)
+#' CT_proj(CT_data)
+#' @author T. Carruthers
+#' @export
 CT_proj = function(CT_data, horizon = 30, test = NA, MPs = NA, RT=0.9,
                    rnd=1, denom = 1E3, unit = "kt", fracextra = 0.3,
                    CurYr = 2019, MPlab_adj = 1.2){
@@ -100,8 +141,9 @@ CT_proj = function(CT_data, horizon = 30, test = NA, MPs = NA, RT=0.9,
     CT_intplot(Blisty,mm,MPs,test,levs,Bio,cols,horizon = horizon,RT=RT)
 
   }
+  ino = match(test,CT_Interp$Code)
   mtext(paste0("Mean Spawning Stock Biomass (",unit,")"),2,line=0.175,outer=T)
-  mtext(c("Projection Year",paste0("% Decline in ",test," After ",horizon," Years")),1,adj=c(0.25,0.92),line=0.2,outer=T)
+  mtext(c("Projection Year",paste0("% ", CT_Interp$Direction[ino]," in ",test," over ",horizon," Years")),1,adj=c(0.25,0.92),line=0.2,outer=T)
 
 }
 
@@ -267,7 +309,7 @@ CT_4_summary = function(CT_data, tests = NA, MPs = NA, RT = 0.9, horizon = 30, d
 
   do_leg(cols, mplabcol, MPs)
 
-  mtext(paste0("Relative SSB after ",horizon, " Proj. Yrs."),2,line=0.13,outer=T,font=2)
+  mtext(paste0("Relative SSB over ",horizon, " Proj. Yrs."),2,line=0.13,outer=T,font=2)
   mtext("Strength of Climate Test (% change)",1,line=0.2,outer=T,font = 2)
 
 }

@@ -20,7 +20,22 @@ YDrel_multi = function (MSEobj = NULL, horizon=20){
 }
 
 
-
+#' Climate Test Metrics summary.
+#'
+#' Produces a table of yield and biomass performance at the end of a specified time horizon for each test
+#'
+#' @param horizon Positive integer. The time horizon (number of projected years) at which the outcome (e.g. SSB) is tuned to be the same as current levels.
+#' @param lev_rnd Positive integer. The number of significant digits to report the levels of each test.
+#' @param dat_rnd Positive integer. The number of significant digits to report the yield and biomass metrics from each test.
+#' @return A list of dataframes
+#' @examples
+#' OM_list = list(BET_1,BET_2)
+#' Hist_list = CT_1_prep(OM_list)
+#' MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
+#' CT_data = CT_3_test(Hist_list, MPs_tuned)
+#' CT_metrics(CT_data)
+#' @author T. Carruthers
+#' @export
 CT_metrics = function(CT_data, horizon=20, lev_rnd=3, dat_rnd = 5){
 
   test_names = rownames(CT_data$levlist)

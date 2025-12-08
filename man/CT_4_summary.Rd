@@ -5,7 +5,7 @@
 \title{Climate Test Step 4: Summarize the results of the marginal climate tests.}
 \usage{
 CT_4_summary(
-  data,
+  CT_data,
   tests = NA,
   MPs = NA,
   RT = 0.9,
@@ -15,7 +15,7 @@ CT_4_summary(
 )
 }
 \arguments{
-\item{data}{A hierarchical list produced in the third step by CT_3_test()}
+\item{CT_data}{A hierarchical list produced in the third step by CT_3_test()}
 
 \item{tests}{A named list of the tests to plot (e.g. c('M', 'K', 'S', 'R', 'C'). Optional, defaults to all tests.}
 
@@ -39,8 +39,8 @@ Produces a figure showing the robustness of the various MPs with increasingly st
 OM_list = list(BET_1,BET_2)
 Hist_list = CT_1_prep(OM_list)
 MPs_tuned = CT_2_tune(Hist_list, c("Ir","It"))
-data = CT_3_test(Hist_list, MPs_tuned)
-CT_4_summary(data)
+CT_data = CT_3_test(Hist_list, MPs_tuned)
+CT_4_summary(CT_data)
 }
 \author{
 T. Carruthers
