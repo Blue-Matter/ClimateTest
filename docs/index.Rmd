@@ -277,7 +277,7 @@ Although there are very few quantitative forecasts of climate impacts on fisheri
 
 ## Climate Test: Metrics of Climate Robustness
 
-Rather than leaving the investigation of climate resilience stalled in the (perhaps indefinite) wait for scientifically defensible forecasts of climate impacts, the Climate Test presents an alternative approach. The solution proposed here is to shift the focus from forecast-based tests of climate robustness in favor of performance metrics of climate robustness. This is analogous to testing pilots in a simulator under an increasingly difficult set of weather conditions. We do not need a weather forecast to know those pilots that are better at flying in more extreme weather conditions. The Climate Test increases the degree of climate impact to identify those management options that most robust. 
+Rather than leaving the investigation of climate resilience stalled in the (perhaps indefinite) wait for scientifically defensible forecasts of climate impacts, the Climate Test presents an alternative approach. The solution proposed here is to shift the focus from forecast-based tests of climate robustness in favor of performance metrics of climate robustness. This is analogous to testing pilots in a simulator under an increasingly difficult set of weather conditions. We do not need a weather forecast to know those pilots that are better at flying in more extreme weather conditions. The Climate Test increases the degree of climate impact to identify those management options that are most robust. 
 
 ## Management Strategy Evaluation
 
@@ -317,7 +317,7 @@ dat<-data.frame(c("Somatic Growth","Recruitment Strength","Natural Mortality","C
                    "Declines in recruitment strength require fewer catches to maintain stock sizes",
                    "Declining natural survival (increasing M) reduces the number of cohorts in the population, and reduces the likelihood of reaching maturity",
                    "Declining condition factor reduces spawning biomass, increases the number of fish caught per catch weight and reduces the rate of sustainable harvest",
-                   "Spatial range contration towards fishing can increase catchability (fishing efficiency) leading to higher catch per effort and hyperstability in relative abundance indices")
+                   "Spatial range contraction towards fishing can increase catchability (fishing efficiency) leading to higher catch per effort and hyperstability in relative abundance indices")
                   )
 
 kable(dat,"simple",col.names=c("Parameter","Code","Description")) 
@@ -326,7 +326,7 @@ kable(dat,"simple",col.names=c("Parameter","Code","Description"))
 
 <br>
 
-These marginal climate tests can be used to rate MPs according to the level of climate impact before the robustness threshold is crossed. Table 4 shows four marginal tests for six example management procedures for blue shark (Carruthers 2024b). 
+These marginal climate tests can be used to rate MPs according to the level of climate impact before the robustness threshold is crossed. Table 4 shows four marginal tests for six example management procedures for Atlantic Blue Shark (Carruthers 2024b). 
 
 
 <span style="color: #7690ba;">Table 4. An example of exploratory climate tests of decreasing: natural survival (M), mean recruitment strength (R), condition factor (C) and somatic growth (K) for six generic management procedures applied to a Atlantic blueshark operating model (Carruthers 2024b). Numbers represent the percentage change in each exploratory test before the robustness threshold was crossed. Higher numbers indicate higher impacts and hence a more climate robust management procedure. </span>
