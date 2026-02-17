@@ -18,12 +18,14 @@
 #' CT_tabulate(results$SSB_relative)
 #' @author T. Carruthers
 #' @export
-CT_tabulate = function(Blist, RT = 0.9, subset = c(1,2,3,4,5)){
+CT_tabulate = function(Blist, RT = 0.9, subset = NA){
+
 
   MPs = rownames(Blist[[1]])
   nMPs = length(MPs)
   tests = names(Blist)
   ntests = length(tests)
+  if(is.na(subset[1]))subset= 1:ntests
 
   tab = array(NA,c(nMPs,ntests))
 
