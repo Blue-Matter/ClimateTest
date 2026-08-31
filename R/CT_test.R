@@ -1,6 +1,6 @@
 
 # Internal funciton for running the MPs on the various spooled up operating models
-CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
+CT_perf = function(Hist_list, MPs,test = "K", percs, horizon=20, parallel = T){
 
   nOM = length(Hist_list)  # number of operating models
   nval = length(percs)   # number of percentage changes to test
@@ -8,6 +8,7 @@ CT_perf = function(Hist_list, MPs,test = "M", percs, horizon=20, parallel = T){
   MSEs = list()
 
   # for each OM, run the nval scenarios
+  # eval = Project(OMs[[1]][[8]],MPs[1]); Splot(eval)
   for(i in 1:nOM) MSEs[[i]] = sfLapply(OMs[[i]],function(X,MPs){Project(X,MPs,silent=T)},MPs=MPs)
 
   # join (across nOM) the MSEs into one per nval scenario
