@@ -1,7 +1,7 @@
 Package: ClimateTest
 Type: Package
 Title: Rating the Climate Readiness of Fishery Management Procedures
-Version: 0.3.41
+Version: 0.4.1
 Authors@R: c(
     person(
       "Tom", "Carruthers",
@@ -26,5 +26,5 @@ License: GNU-3
 Encoding: UTF-8
 LazyData: true
 Depends:
-  DT, openMSE, viridis
+  DT, openMSE, viridis, abind
 RoxygenNote: 7.3.3

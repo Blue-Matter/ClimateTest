@@ -24,7 +24,7 @@ eval_tune = function (MPobj, Hist_list, minfunc,parallel =T){
 #' @author T. Carruthers
 #' @export
 CT_1_prep = function(OM_list){
-  Hist_list = sfLapply(OM_list, Simulate)
+  Hist_list = snowfall::sfLapply(OM_list, Simulate)
   if(any("multiHist" %in% class(Hist_list[[1]]))){
     for(om in 1:length(Hist_list)){
       for(ss in 1:length(Hist_list[[om]])){
@@ -34,7 +34,11 @@ CT_1_prep = function(OM_list){
       }
     }
   }
-  lapply(Hist_list, do_all)
+  if(class(Hist_list[[1]])=="hist"){
+    return(lapply(Hist_list, do_all_v2)) # openMSE v2
+  }else{
+    return(lapply(Hist_list, do_all))    # openMSE v1
+  }
 }
 
 
